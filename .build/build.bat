@@ -102,7 +102,7 @@ if "!CPP_LIST!"=="" (
 
 echo.
 echo Compiling...
-g++ -std=c++17 -O2 -g ^
+g++ -std=c++26 -O2 -g ^
     -static-libgcc -static-libstdc++ ^
     -I"%ROOT_DIR%" ^
     -I"%ROOT_DIR%\src" ^

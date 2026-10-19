@@ -33,8 +33,8 @@ void Main::Init() {
  * 
  */
 void Main::Run() {
-    Set();
     Init();
+    Set();
     Update();
     Cleanup();
 }
