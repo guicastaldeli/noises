@@ -6,6 +6,9 @@
 Window::Window() {};
 Window::~Window() {};
 
+/**
+ * Set
+ */
 void Window::set() {
     VkInstance instance;
     VkApplicationInfo appInfo{};
@@ -31,6 +34,32 @@ void Window::set() {
     vkDestroyInstance(instance, nullptr);
 }
 
-void Window::init() {
+/**
+ * Update
+ */
+void Window::update() {
+    while(!glfwWindowShouldClose(window)) {
+        glfwPollEvents();
+    }
+}
 
+/**
+ * 
+ * Init
+ * 
+ */
+void Window::init() {
+    glfwInit();
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+
+    window = glfwCreateWindow(WIDTH, HEIGHT, APPLICATION_NAME, nullptr, nullptr);
+}
+
+/**
+ * Cleanup
+ */
+void Window::cleanup() {
+    glfwDestroyWindow(window);
+    glfwTerminate();
 }

@@ -1,21 +1,30 @@
 #include <cake.hpp>
 #include <iostream>
 
-Main::Main() {};
+Main::Main() :
+    window() 
+{};
 Main::~Main() {};
+
+/**
+ * Set
+ */
+void Main::Set() {
+    window.set();
+}
 
 /**
  * Update
  */
 void Main::Update() {
-
+    window.update();
 }
 
 /**
  * Init
  */
 void Main::Init() {
-
+    window.init();
 }
 
 /**
@@ -24,6 +33,7 @@ void Main::Init() {
  * 
  */
 void Main::Run() {
+    Set();
     Init();
     Update();
     Cleanup();
@@ -33,7 +43,7 @@ void Main::Run() {
  * Cleanup
  */
 void Main::Cleanup() {
-    
+    window.cleanup();
 }
 
 /******************
