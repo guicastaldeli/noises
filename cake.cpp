@@ -2,7 +2,7 @@
 #include <iostream>
 
 Main::Main() :
-    window() 
+    window(*this)
 {};
 Main::~Main() {};
 
@@ -43,6 +43,15 @@ void Main::Run() {
  * Cleanup
  */
 void Main::Cleanup() {
+    if(enableValitationLayers) {
+        DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
+    }
+
+    if(instance != VK_NULL_HANDLE) {
+        vkDestroyInstance(instance, nullptr);
+        instance = VK_NULL_HANDLE;
+    }
+
     window.cleanup();
 }
 

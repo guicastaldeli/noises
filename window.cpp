@@ -7,14 +7,14 @@
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_raii.hpp>
 
-Window::Window() {};
+Window::Window(Main& main) : main(main) {};
 Window::~Window() {};
 
 /**
  * Set
  */
 void Window::set() {
-    if(enableValitationLayers && !checkValidationLayerSupport) {
+    if(enableValitationLayers && !main.checkValidationLayerSupport()) {
         throw std::runtime_error("validation layers requested, but not available!");
     }
 
@@ -29,22 +29,22 @@ void Window::set() {
     createInfo.sType                        = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     createInfo.pApplicationInfo             = &appInfo;
 
-    auto extensions = getRequiredExtensions();
+    auto extensions = main.getRequiredExtensions();
     createInfo.enabledExtensionCount        = static_cast<uint32_t>(extensions.size());
-    createInfo.ppEnabledExtensionNames      = extensions.data;
+    createInfo.ppEnabledExtensionNames      = extensions.data();
 
     VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
     if(enableValitationLayers) {
-        createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-        createInfo.ppEnabledLayerNames = validationLayers.data();
-        populateDebugMessengerCreateInfo(debugCreateInfo);
+        createInfo.enabledLayerCount = static_cast<uint32_t>(main.validationLayers.size());
+        createInfo.ppEnabledLayerNames = main.validationLayers.data();
+        main.populateDebugMessengerCreateInfo(debugCreateInfo);
         createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*) &debugCreateInfo;
     } else {
         createInfo.enabledLayerCount = 0;
         createInfo.pNext = nullptr;
     }
 
-    if(vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
+    if(vkCreateInstance(&createInfo, nullptr, &main.instance) != VK_SUCCESS) {
         throw std::runtime_error("Failed to create instance!");
     }
 }
@@ -75,15 +75,6 @@ void Window::init() {
  * Cleanup
  */
 void Window::cleanup() {
-    if(enableValitationLayers) {
-        DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
-    }
-
-    if(instance != VK_NULL_HANDLE) {
-        vkDestroyInstance(instance, nullptr);
-        instance = VK_NULL_HANDLE;
-    }
-
     glfwDestroyWindow(window);
     glfwTerminate();
 }
