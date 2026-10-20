@@ -21,7 +21,26 @@ class Window;
 #endif
 
 class Main {
+private:
+    /****** 
+     * 
+     * Dynamic States
+     * 
+     * ***/
+    std::vector<VkDynamicState> dynamicStates = {
+        VK_DYNAMIC_STATE_VIEWPORT,
+        VK_DYNAMIC_STATE_SCISSOR
+    };
+    /**
+     * 
+     */
+
 public:
+    /********* 
+     * 
+     * Queue Family
+     * 
+     * *****/
     struct QueueFamilyIndices {
         std::optional<uint32_t> graphicsFamily;
         std::optional<uint32_t> presentFamily;
@@ -30,18 +49,16 @@ public:
             return graphicsFamily.has_value() && presentFamily.has_value();
         }
     };
-
-    struct SwapChainSupportDetails {
-        VkSurfaceCapabilitiesKHR capabilities;
-        std::vector<VkSurfaceFormatKHR> formats;
-        std::vector<VkPresentModeKHR> presentModes;
-    };
+    /**
+     * 
+     */
     
     Main();
     ~Main();
 
     VkInstance instance = VK_NULL_HANDLE;
     VkDevice device;
+    VkPipelineLayout pipelineLayout;
     const std::vector<const char*> deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
  
     VkQueue graphicsQueue;
@@ -54,8 +71,9 @@ public:
     void Update();
     void Init();
 
-    void Cleanup();
+    void Render();
     void Run();
+    void Cleanup();
 
     /*******
      * Physical Device
@@ -285,6 +303,12 @@ public:
     /*******
      * Swap Chain
      ******/
+    struct SwapChainSupportDetails {
+        VkSurfaceCapabilitiesKHR capabilities;
+        std::vector<VkSurfaceFormatKHR> formats;
+        std::vector<VkPresentModeKHR> presentModes;
+    };
+
     VkSwapchainKHR swapChain;
     std::vector<VkImage> swapChainImages;
     VkFormat swapChainImageFormat;

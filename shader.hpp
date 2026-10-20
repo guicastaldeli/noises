@@ -40,6 +40,9 @@ public:
     static std::vector<char> readFile(const std::string& filename);
     VkShaderModule createShaderModule(const std::vector<char>& src);
 
+    const std::vector<VkPipelineShaderStageCreateInfo>& getStageInfos();
+
     void run();
+    void render();
     void cleanup();
 };
