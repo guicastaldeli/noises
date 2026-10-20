@@ -40,9 +40,18 @@ public:
     static std::vector<char> readFile(const std::string& filename);
     VkShaderModule createShaderModule(const std::vector<char>& src);
 
-    const std::vector<VkPipelineShaderStageCreateInfo>& getStageInfos();
+    const std::vector<VkPipelineShaderStageCreateInfo>& getStageInfos() const;
 
     void run();
-    void render();
     void cleanup();
+
+    /***********
+     * Vertex Input
+     *****/
+    VkPipelineVertexInputStateCreateInfo vertexInputInfo() {
+        VkPipelineVertexInputStateCreateInfo i{};
+        i.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+        i.vertexBindingDescriptionCount = 0;
+        i.vertexAttributeDescriptionCount = 0;
+    }
 };
