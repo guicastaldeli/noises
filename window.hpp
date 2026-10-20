@@ -1,8 +1,13 @@
 #pragma once
 
+#define VK_USE_PLATFORM_WIN32_KHR
+#define GLFW_INCLUDE_VULKAN
+    #include <GLFW/glfw3.h>
+#define GLFW_EXPOSE_NATIVE_WIN32
+    #include <GLFW/glfw3native.h>
+
 #include <cake.hpp>
 #include <iostream>
-#include <GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
 
 class Main;
@@ -14,12 +19,23 @@ private:
     const uint32_t WIDTH = 800;
     const uint32_t HEIGHT = 600;
 
-    GLFWwindow *window = nullptr;
     Main& main;
+
+    /*******
+     * Surface
+     *****/
+    void createSurface() {
+        if(glfwCreateWindowSurface(main.instance, window, nullptr, &surface) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create window surface!");
+        }
+    }
 
 public:
     Window(Main& main);
     ~Window();
+
+    GLFWwindow *window = nullptr;
+    VkSurfaceKHR surface;
     
     void set();
     void update();
