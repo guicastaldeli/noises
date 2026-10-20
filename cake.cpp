@@ -4,6 +4,7 @@
 
 Main::Main() {
     window = new Window(*this);
+    shader = new Shader(*this);
 }
 Main::~Main() {};
 
@@ -26,6 +27,7 @@ void Main::Update() {
  */
 void Main::Init() {
     window->init();
+    shader->init();
 }
 
 /**

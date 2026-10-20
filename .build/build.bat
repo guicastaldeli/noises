@@ -86,6 +86,16 @@ echo Cleaning previous builds...
 del /q "%BUILD_DIR%\*.exe" 2>nul
 
 echo.
+echo Compiling shaders...
+set "SHADERS_FROM_BUILD=1"
+call "%ROOT_DIR%\shaders\compile.bat"
+if errorlevel 1 (
+    echo ERROR: Shader compilation failed.
+    if not defined BUILD_FROM_RUN pause
+    exit /b 1
+)
+
+echo.
 echo Collecting .cpp files...
 set "CPP_LIST="
 for /r "%ROOT_DIR%" %%f in (*.cpp) do (
