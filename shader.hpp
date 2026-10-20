@@ -19,8 +19,8 @@ private:
      * 
      **/
     inline static const ShaderStage Src[] = {
-        { VK_SHADER_STAGE_VERTEX_BIT, "vert.spv" },
-        { VK_SHADER_STAGE_VERTEX_BIT, "frag.spv" }
+        { VK_SHADER_STAGE_VERTEX_BIT,   "vert.spv" },
+        { VK_SHADER_STAGE_FRAGMENT_BIT, "frag.spv" }
     };
     /**
      * 
@@ -40,6 +40,6 @@ public:
     static std::vector<char> readFile(const std::string& filename);
     VkShaderModule createShaderModule(const std::vector<char>& src);
 
-    void init();
+    void run();
     void cleanup();
 };

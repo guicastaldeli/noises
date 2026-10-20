@@ -1,6 +1,9 @@
 #include <shader.hpp>
 #include <fstream>
 #include <cake.hpp>
+#include <cstdint>
+#include <cstring>
+#include <iostream>
 
 Shader::Shader(Main& main) : main(main) {};
 Shader::~Shader() {};
@@ -48,6 +51,16 @@ void Shader::set() {
 
     for(const auto& s : Src) {
         auto code = readFile(s.path);
+        std::cout << "[shader] " << s.path
+          << "  size=" << code.size()
+          << " bytes  first words:";
+        for (size_t i = 0; i < std::min<size_t>(4, code.size() / 4); ++i) {
+            uint32_t w;
+            std::memcpy(&w, code.data() + i * 4, 4);
+            std::cout << " 0x" << std::hex << w << std::dec;
+        }
+        std::cout << std::endl;
+
         VkShaderModule mod = createShaderModule(code);
         if(mod == VK_NULL_HANDLE) {
             throw std::runtime_error(std::string("failed to create shader module: ") + s.path);
@@ -66,10 +79,10 @@ void Shader::set() {
 
 /**
  * 
- * Init
+ * Run
  * 
  */
-void Shader::init() {
+void Shader::run() {
     set();
 }
 

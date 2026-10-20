@@ -27,7 +27,6 @@ void Main::Update() {
  */
 void Main::Init() {
     window->init();
-    shader->init();
 }
 
 /**
@@ -42,6 +41,8 @@ void Main::Run() {
     pickPhysicalDevice();
     createLogicalDevice();
     createSwapChain();
+
+    shader->run();
     
     Update();
     Cleanup();
@@ -51,14 +52,17 @@ void Main::Run() {
  * Cleanup
  */
 void Main::Cleanup() {
-    if(enableValitationLayers) {
-        DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
-    }
+    if(device != VK_NULL_HANDLE) vkDeviceWaitIdle(device);
+    shader->cleanup();
 
-    if(instance != VK_NULL_HANDLE) {
-        vkDestroyInstance(instance, nullptr);
-        instance = VK_NULL_HANDLE;
-    }
+    for(auto iv : swapChainImageViews) vkDestroyImageView(device, iv, nullptr);
+    swapChainImageViews.clear();
+    
+    if(swapChain != VK_NULL_HANDLE) vkDestroySwapchainKHR(device, swapChain, nullptr);
+    if(device != VK_NULL_HANDLE) vkDestroyDevice(device, nullptr);
+    if(window->surface != VK_NULL_HANDLE) vkDestroySurfaceKHR(instance, window->surface, nullptr);
+    if(enableValitationLayers) DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
+    if(instance != VK_NULL_HANDLE) vkDestroyInstance(instance, nullptr);
 
     window->cleanup();
 }
