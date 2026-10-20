@@ -36,7 +36,7 @@ if not defined VULKAN_SDK (
     echo   - Set VULKAN_SDK to your SDK root, e.g.
     echo       setx VULKAN_SDK "C:\VulkanSDK\1.4.363.0"
     echo     then CLOSE and REOPEN this terminal.
-    pause
+    if not defined BUILD_FROM_RUN pause
     exit /b 1
 )
 
@@ -44,12 +44,12 @@ echo [build] Using VULKAN_SDK = %VULKAN_SDK%
 
 if not exist "%VULKAN_SDK%\Include\vulkan\vulkan.h" (
     echo ERROR: Missing "%VULKAN_SDK%\Include\vulkan\vulkan.h"
-    pause
+    if not defined BUILD_FROM_RUN pause
     exit /b 1
 )
 if not exist "%VULKAN_SDK%\Lib\vulkan-1.lib" (
     echo ERROR: Missing "%VULKAN_SDK%\Lib\vulkan-1.lib"
-    pause
+    if not defined BUILD_FROM_RUN pause
     exit /b 1
 )
 
@@ -60,7 +60,7 @@ if not exist "%SystemRoot%\System32\vulkan-1.dll" (
 
 cd /d "%ROOT_DIR%" || (
     echo ERROR: Could not cd into "%ROOT_DIR%"
-    pause
+    if not defined BUILD_FROM_RUN pause
     exit /b 1
 )
 
@@ -68,7 +68,7 @@ where g++ >nul 2>nul
 if errorlevel 1 (
     echo ERROR: g++ not found on PATH.
     echo Add your MinGW bin folder to PATH and try again.
-    pause
+    if not defined BUILD_FROM_RUN pause
     exit /b 1
 )
 
@@ -98,7 +98,7 @@ for /r "%ROOT_DIR%" %%f in (*.cpp) do (
 
 if "!CPP_LIST!"=="" (
     echo ERROR: No .cpp files found.
-    pause
+    if not defined BUILD_FROM_RUN pause
     exit /b 1
 )
 
@@ -120,14 +120,14 @@ g++ -std=c++17 -O2 -g ^
 if errorlevel 1 (
     echo.
     echo ERROR: Build failed.
-    pause
+    if not defined BUILD_FROM_RUN pause
     exit /b 1
 )
 
 echo.
 if not exist "%OUT_EXE%" (
     echo ERROR: Output not created.
-    pause
+    if not defined BUILD_FROM_RUN pause
     exit /b 1
 )
 
@@ -138,5 +138,5 @@ echo.
 echo Run it with:
 echo   "%OUT_EXE%"
 echo.
-pause
+if not defined BUILD_FROM_RUN pause
 endlocal
