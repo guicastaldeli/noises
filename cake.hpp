@@ -57,14 +57,14 @@ public:
     ~Main();
 
     VkInstance instance = VK_NULL_HANDLE;
-    VkDevice device;
-    VkRenderPass renderPass;
-    VkPipelineLayout pipelineLayout;
-    VkPipeline graphicsPipeline;
+    VkDevice device = VK_NULL_HANDLE;
+    VkRenderPass renderPass = VK_NULL_HANDLE;
+    VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
+    VkPipeline graphicsPipeline = VK_NULL_HANDLE;
     const std::vector<const char*> deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
  
-    VkQueue graphicsQueue;
-    VkQueue presentQueue;
+    VkQueue graphicsQueue = VK_NULL_HANDLE;
+    VkQueue presentQueue = VK_NULL_HANDLE;
 
     Window* window = nullptr;
     Shader* shader = nullptr;
@@ -202,7 +202,7 @@ public:
     /*******
      * Debug
      **************/
-    VkDebugUtilsMessengerEXT debugMessenger;
+    VkDebugUtilsMessengerEXT debugMessenger = VK_NULL_HANDLE;
 
     VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, 
                                             const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, 
@@ -311,10 +311,10 @@ public:
         std::vector<VkPresentModeKHR> presentModes;
     };
 
-    VkSwapchainKHR swapChain;
+    VkSwapchainKHR swapChain = VK_NULL_HANDLE;
     std::vector<VkImage> swapChainImages;
-    VkFormat swapChainImageFormat;
-    VkExtent2D swapChainExtent;
+    VkFormat swapChainImageFormat = VK_FORMAT_UNDEFINED;
+    VkExtent2D swapChainExtent = {0, 0};
     std::vector<VkImageView> swapChainImageViews;
 
     void createSwapChain() {
@@ -480,6 +480,16 @@ public:
         renderPassInfo.pAttachments = &colorAttachment;
         renderPassInfo.subpassCount = 1;
         renderPassInfo.pSubpasses = &subpass;
+
+        VkSubpassDependency dependency{};
+        dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+        dependency.dstSubpass = 0;
+        dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.srcAccessMask = 0;
+        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        renderPassInfo.dependencyCount = 1;
+        renderPassInfo.pDependencies = &dependency;
 
         if(vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
             throw std::runtime_error("failed to create render pass!");

@@ -48,10 +48,11 @@ public:
     /***********
      * Vertex Input
      *****/
-    VkPipelineVertexInputStateCreateInfo vertexInputInfo() {
+    VkPipelineVertexInputStateCreateInfo vertexInputInfo() const {
         VkPipelineVertexInputStateCreateInfo i{};
         i.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
         i.vertexBindingDescriptionCount = 0;
         i.vertexAttributeDescriptionCount = 0;
+        return i;
     }
 };

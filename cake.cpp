@@ -6,7 +6,10 @@ Main::Main() {
     window = new Window(*this);
     shader = new Shader(*this);
 }
-Main::~Main() {};
+Main::~Main() {
+    delete shader; shader = nullptr;
+    delete window; window = nullptr;
+};
 
 /**
  * Set
@@ -29,6 +32,7 @@ void Main::Update() {
  */
 void Main::Render() {
     auto stageInfos = shader->getStageInfos();
+    VkPipelineVertexInputStateCreateInfo vertexInputInfo = shader->vertexInputInfo();
 
     VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
     inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -88,14 +92,16 @@ void Main::Render() {
 
     VkGraphicsPipelineCreateInfo pipelineInfo{};
     pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-    pipelineInfo.stageCount = 2;
+    pipelineInfo.stageCount = static_cast<uint32_t>(stageInfos.size());
     pipelineInfo.pStages = stageInfos.data();
-    pipelineInfo.pVertexInputState = &shader->vertexInputInfo();
+    pipelineInfo.pVertexInputState = &vertexInputInfo;
     pipelineInfo.pInputAssemblyState = &inputAssembly;
+    pipelineInfo.pViewportState = &viewportState;
     pipelineInfo.pRasterizationState = &rasterizer;
     pipelineInfo.pMultisampleState = &multisampling;
     pipelineInfo.pColorBlendState = &colorBlending;
     pipelineInfo.pDynamicState = &dynamicState;
+    pipelineInfo.layout = pipelineLayout;
     pipelineInfo.renderPass = renderPass;
     pipelineInfo.subpass = 0;
     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
@@ -128,9 +134,8 @@ void Main::Run() {
     createImageViews();
     createRenderPass();
 
-    Render();
-    
     shader->run();
+    Render();
     
     Update();
     Cleanup();

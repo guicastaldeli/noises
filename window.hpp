@@ -35,7 +35,7 @@ public:
     ~Window();
 
     GLFWwindow *window = nullptr;
-    VkSurfaceKHR surface;
+    VkSurfaceKHR surface = VK_NULL_HANDLE;
     
     void set();
     void update();
