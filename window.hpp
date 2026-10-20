@@ -6,8 +6,8 @@
 #define GLFW_EXPOSE_NATIVE_WIN32
     #include <GLFW/glfw3native.h>
 
-#include <cake.hpp>
 #include <iostream>
+#include <stdexcept>
 #include <vulkan/vulkan.h>
 
 class Main;
@@ -24,8 +24,8 @@ private:
     /*******
      * Surface
      *****/
-    void createSurface() {
-        if(glfwCreateWindowSurface(main.instance, window, nullptr, &surface) != VK_SUCCESS) {
+    void createSurface(VkInstance instance) {
+        if(glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) {
             throw std::runtime_error("failed to create window surface!");
         }
     }

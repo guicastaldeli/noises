@@ -11,6 +11,8 @@
 #include <algorithm>
 #include <set>
 
+class Window;
+
 #ifdef NDEBUG
     const bool enableValitationLayers = false;
 #else
@@ -39,12 +41,12 @@ public:
 
     VkInstance instance = VK_NULL_HANDLE;
     VkDevice device;
-    const std::vector<const char*> deviceExtensions = { "VK_KHR_SWAPCHAN_EXTENSION_NAME" };
+    const std::vector<const char*> deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
  
     VkQueue graphicsQueue;
     VkQueue presentQueue;
 
-    Window window;
+    Window* window = nullptr;
 
     void Set();
     void Update();
@@ -120,7 +122,7 @@ public:
             }
 
             VkBool32 presentSupport = false;
-            vkGetPhysicalDeviceSurfaceSupportKHR(device, i, window.surface, &presentSupport);
+            vkGetPhysicalDeviceSurfaceSupportKHR(device, i, window->surface, &presentSupport);
             if(presentSupport) indices.presentFamily = i;
             
             if(indices.isComplete()) {
@@ -146,7 +148,7 @@ public:
         for(uint32_t queueFamily : uniqueQueueFamilies) {
             VkDeviceQueueCreateInfo queueCreateInfo{};
             queueCreateInfo.sType                   = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-            queueCreateInfo.queueFamilyIndex        = indices.graphicsFamily.value();
+            queueCreateInfo.queueFamilyIndex        = queueFamily;
             queueCreateInfo.queueCount              = 1;
             queueCreateInfo.pQueuePriorities        = &queuePriority;
             queueCreateInfos.push_back(queueCreateInfo);
@@ -159,9 +161,10 @@ public:
         createInfo.pQueueCreateInfos            = queueCreateInfos.data();
         createInfo.pEnabledFeatures             = &deviceFeatures;
         createInfo.enabledExtensionCount        = static_cast<uint32_t>(deviceExtensions.size());
+        createInfo.ppEnabledExtensionNames      = deviceExtensions.data();
         if(enableValitationLayers) {
             createInfo.enabledLayerCount        = static_cast<uint32_t>(validationLayers.size());
-            createInfo.ppEnabledLayerNames      = deviceExtensions.data();
+            createInfo.ppEnabledLayerNames      = validationLayers.data();
         } else {
             createInfo.enabledLayerCount        = 0;
         }
@@ -299,7 +302,7 @@ public:
 
         VkSwapchainCreateInfoKHR createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-        createInfo.surface = window.surface;
+        createInfo.surface = window->surface;
         createInfo.minImageCount = imageCount;
         createInfo.imageFormat = surfaceFormat.format;
         createInfo.imageColorSpace = surfaceFormat.colorSpace;
@@ -339,20 +342,20 @@ public:
     SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device) {
         SwapChainSupportDetails details;
         
-        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, window.surface, &details.capabilities);
+        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, window->surface, &details.capabilities);
 
         uint32_t formatCount;
-        vkGetPhysicalDeviceSurfaceFormatsKHR(device, window.surface, &formatCount, nullptr);
+        vkGetPhysicalDeviceSurfaceFormatsKHR(device, window->surface, &formatCount, nullptr);
         if(formatCount != 0) {
             details.formats.resize(formatCount);
-            vkGetPhysicalDeviceSurfaceFormatsKHR(device, window.surface, &formatCount, details.formats.data());
+            vkGetPhysicalDeviceSurfaceFormatsKHR(device, window->surface, &formatCount, details.formats.data());
         }
 
         uint32_t presentModeCount;
-        vkGetPhysicalDeviceSurfacePresentModesKHR(device, window.surface, &presentModeCount, nullptr);
+        vkGetPhysicalDeviceSurfacePresentModesKHR(device, window->surface, &presentModeCount, nullptr);
         if(presentModeCount != 0) {
             details.presentModes.resize(presentModeCount);
-            vkGetPhysicalDeviceSurfacePresentModesKHR(device, window.surface, &presentModeCount, details.presentModes.data());
+            vkGetPhysicalDeviceSurfacePresentModesKHR(device, window->surface, &presentModeCount, details.presentModes.data());
         }
 
         return details;
@@ -383,7 +386,7 @@ public:
             return capabilities.currentExtent;
         } else {
             int width, height;
-            glfwGetFramebufferSize(window.window, &width, &height);
+            glfwGetFramebufferSize(window->window, &width, &height);
 
             VkExtent2D actualExtent = {
                 static_cast<uint32_t>(width),

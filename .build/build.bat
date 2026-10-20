@@ -4,6 +4,8 @@ setlocal EnableDelayedExpansion
 set "ROOT_DIR=%~dp0.."
 set "BUILD_DIR=%ROOT_DIR%\.build"
 set "OUT_EXE=%BUILD_DIR%\perlins.exe"
+set "GLFW_INCLUDE=C:\Users\casta\OneDrive\Desktop\glfw-3.4\include"
+set "GLFW_LIB_DIR=C:\Users\casta\OneDrive\Desktop\glfw-3.4\src"
 
 set "VK_VALID=0"
 if defined VULKAN_SDK (
@@ -102,16 +104,18 @@ if "!CPP_LIST!"=="" (
 
 echo.
 echo Compiling...
-g++ -std=c++26 -O2 -g ^
+g++ -std=c++17 -O2 -g ^
     -static-libgcc -static-libstdc++ ^
     -I"%ROOT_DIR%" ^
     -I"%ROOT_DIR%\src" ^
     -I"%VULKAN_SDK%\Include" ^
+    -I"%GLFW_INCLUDE%" ^
     -L"%VULKAN_SDK%\Lib" ^
+    -L"%GLFW_LIB_DIR%" ^
     -o "%OUT_EXE%" ^
     !CPP_LIST! ^
     "%VULKAN_SDK%\Lib\vulkan-1.lib" ^
-    -luser32 -lshell32 -lws2_32
+    -lglfw3 -lgdi32 -luser32 -lshell32 -lws2_32
 
 if errorlevel 1 (
     echo.

@@ -1,30 +1,31 @@
 #include <cake.hpp>
 #include <iostream>
+#include <window.hpp>
 
-Main::Main() :
-    window(*this)
-{};
+Main::Main() {
+    window = new Window(*this);
+}
 Main::~Main() {};
 
 /**
  * Set
  */
 void Main::Set() {
-    window.set();
+    window->set();
 }
 
 /**
  * Update
  */
 void Main::Update() {
-    window.update();
+    window->update();
 }
 
 /**
  * Init
  */
 void Main::Init() {
-    window.init();
+    window->init();
 }
 
 /**
@@ -35,6 +36,11 @@ void Main::Init() {
 void Main::Run() {
     Init();
     Set();
+
+    pickPhysicalDevice();
+    createLogicalDevice();
+    createSwapChain();
+    
     Update();
     Cleanup();
 }
@@ -52,7 +58,7 @@ void Main::Cleanup() {
         instance = VK_NULL_HANDLE;
     }
 
-    window.cleanup();
+    window->cleanup();
 }
 
 /******************

@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <stdexcept>
 #include <string>
+#include <cake.hpp>
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_raii.hpp>
@@ -47,6 +48,9 @@ void Window::set() {
     if(vkCreateInstance(&createInfo, nullptr, &main.instance) != VK_SUCCESS) {
         throw std::runtime_error("Failed to create instance!");
     }
+
+    createSurface(main.instance);
+    main.setupDebugMessenger();
 }
 
 /**
