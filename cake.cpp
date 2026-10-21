@@ -145,6 +145,14 @@ void Main::Run() {
  * Cleanup
  */
 void Main::Cleanup() {
+    vkDestroyCommandPool(device, commandPool, nullptr);
+    
+    for(auto framebuffer : swapChainFramebuffers) vkDestroyFramebuffer(device, framebuffer, nullptr);
+    
+    if(graphicsPipeline != VK_NULL_HANDLE) vkDestroyPipeline(device, graphicsPipeline, nullptr);
+    if(pipelineLayout != VK_NULL_HANDLE) vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+    if(renderPass != VK_NULL_HANDLE) vkDestroyRenderPass(device, renderPass, nullptr);
+    
     if(device != VK_NULL_HANDLE) vkDeviceWaitIdle(device);
     shader->cleanup();
 
@@ -152,9 +160,6 @@ void Main::Cleanup() {
     swapChainImageViews.clear();
     
     if(swapChain != VK_NULL_HANDLE) vkDestroySwapchainKHR(device, swapChain, nullptr);
-    if(graphicsPipeline != VK_NULL_HANDLE) vkDestroyPipeline(device, graphicsPipeline, nullptr);
-    if(pipelineLayout != VK_NULL_HANDLE) vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
-    if(renderPass != VK_NULL_HANDLE) vkDestroyRenderPass(device, renderPass, nullptr);
     if(device != VK_NULL_HANDLE) vkDestroyDevice(device, nullptr);
     if(window->surface != VK_NULL_HANDLE) vkDestroySurfaceKHR(instance, window->surface, nullptr);
     if(enableValitationLayers) DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
