@@ -141,28 +141,29 @@ void Main::Run() {
  * Cleanup
  */
 void Main::Cleanup() {
-    cleanupSwapChain();
-    
-    vkDestroyCommandPool(device, commandPool, nullptr);
+    if(device != VK_NULL_HANDLE) vkDeviceWaitIdle(device);
 
-    for(auto framebuffer : swapChainFramebuffers) vkDestroyFramebuffer(device, framebuffer, nullptr);
-    
+    cleanupSwapChain();
+
+    if(commandPool != VK_NULL_HANDLE) vkDestroyCommandPool(device, commandPool, nullptr);
+
+    for(size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        vkDestroySemaphore(device, imageAvailableSemaphores[i], nullptr);
+        vkDestroySemaphore(device, renderFinishedSemaphores[i], nullptr);
+        vkDestroyFence(device, inFlightFences[i], nullptr);
+    }
+
     if(graphicsPipeline != VK_NULL_HANDLE) vkDestroyPipeline(device, graphicsPipeline, nullptr);
     if(pipelineLayout != VK_NULL_HANDLE) vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
     if(renderPass != VK_NULL_HANDLE) vkDestroyRenderPass(device, renderPass, nullptr);
     
-    if(device != VK_NULL_HANDLE) vkDeviceWaitIdle(device);
     shader->cleanup();
 
-    for(auto iv : swapChainImageViews) vkDestroyImageView(device, iv, nullptr);
-    swapChainImageViews.clear();
-    
-    if(swapChain != VK_NULL_HANDLE) vkDestroySwapchainKHR(device, swapChain, nullptr);
     if(device != VK_NULL_HANDLE) vkDestroyDevice(device, nullptr);
     if(window->surface != VK_NULL_HANDLE) vkDestroySurfaceKHR(instance, window->surface, nullptr);
     if(enableValitationLayers) DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
+    
     if(instance != VK_NULL_HANDLE) vkDestroyInstance(instance, nullptr);
-
     window->cleanup();
 }
 

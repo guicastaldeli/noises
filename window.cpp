@@ -73,13 +73,16 @@ void Window::update() {
 void Window::init() {
     glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
     window = glfwCreateWindow(
         WINDOW_WIDTH, WINDOW_HEIGHT, 
         APPLICATION_NAME, 
         nullptr, nullptr
     );
+
+    glfwSetWindowUserPointer(window, &main);
+    glfwSetFramebufferSizeCallback(window, framebufferResizeCallback<Main>);
 }
 
 /**

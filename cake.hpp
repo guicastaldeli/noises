@@ -482,8 +482,13 @@ public:
 
     void cleanupSwapChain() {
         for(auto framebuffer : swapChainFramebuffers) vkDestroyFramebuffer(device, framebuffer, nullptr);
+        swapChainFramebuffers.clear();
+
         for(auto imageView : swapChainImageViews) vkDestroyImageView(device, imageView, nullptr);
+        swapChainImageViews.clear();
+
         vkDestroySwapchainKHR(device, swapChain, nullptr);
+        swapChain = VK_NULL_HANDLE;
     }
 
     /*******
