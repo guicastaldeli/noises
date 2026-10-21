@@ -75,7 +75,11 @@ void Window::init() {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
-    window = glfwCreateWindow(WIDTH, HEIGHT, APPLICATION_NAME, nullptr, nullptr);
+    window = glfwCreateWindow(
+        WINDOW_WIDTH, WINDOW_HEIGHT, 
+        APPLICATION_NAME, 
+        nullptr, nullptr
+    );
 }
 
 /**

@@ -16,8 +16,8 @@ private:
     #define APPLICATION_NAME "Perlins"
     #define ENGINE_NAME "Vulkan"
 
-    const uint32_t WIDTH = 800;
-    const uint32_t HEIGHT = 600;
+    const uint32_t WINDOW_WIDTH = 800;
+    const uint32_t WINDOW_HEIGHT = 600;
 
     Main& main;
 
@@ -41,4 +41,13 @@ public:
     void update();
     void init();
     void cleanup();
+
+    /*************
+     * Framebuffer
+     ****/
+    template<typename T = Main>
+    static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {
+        auto app = reinterpret_cast<T*>(glfwGetWindowUserPointer(window));
+        app->framebufferResized = true;
+    }
 };

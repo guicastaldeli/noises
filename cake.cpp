@@ -141,6 +141,8 @@ void Main::Run() {
  * Cleanup
  */
 void Main::Cleanup() {
+    cleanupSwapChain();
+    
     vkDestroyCommandPool(device, commandPool, nullptr);
 
     for(auto framebuffer : swapChainFramebuffers) vkDestroyFramebuffer(device, framebuffer, nullptr);
