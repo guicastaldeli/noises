@@ -128,11 +128,7 @@ void Main::Run() {
     Init();
     Set();
 
-    pickPhysicalDevice();
-    createLogicalDevice();
-    createSwapChain();
-    createImageViews();
-    createRenderPass();
+    runPipeline();
 
     shader->run();
     Render();
@@ -146,7 +142,7 @@ void Main::Run() {
  */
 void Main::Cleanup() {
     vkDestroyCommandPool(device, commandPool, nullptr);
-    
+
     for(auto framebuffer : swapChainFramebuffers) vkDestroyFramebuffer(device, framebuffer, nullptr);
     
     if(graphicsPipeline != VK_NULL_HANDLE) vkDestroyPipeline(device, graphicsPipeline, nullptr);

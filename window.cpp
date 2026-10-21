@@ -59,7 +59,10 @@ void Window::set() {
 void Window::update() {
     while(!glfwWindowShouldClose(window)) {
         glfwPollEvents();
+        main.drawFrame();
     }
+
+    vkDeviceWaitIdle(main.device);
 }
 
 /**
