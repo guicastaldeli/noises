@@ -126,9 +126,7 @@ private:
                         VkMemoryPropertyFlags properties, 
                         VkBuffer& buffer, 
                         VkDeviceMemory& bufferMemory);
-    void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
     void uploadMesh(const std::string& type, const MeshData& data);
-    uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
     /********************** 
      * 
@@ -419,5 +417,12 @@ public:
         info.vertexAttributeDescriptionCount = static_cast<uint32_t>(attrDesc.size());
         info.pVertexAttributeDescriptions = attrDesc.data();
         return info;
+    }
+    
+    /********* 
+     * Get Descriptor Set Layout
+     * *******/
+    VkDescriptorSetLayout getDescriptorSetLayout() const {
+        return descriptorSetLayout;
     }
 };

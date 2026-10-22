@@ -165,6 +165,12 @@ void Mesh::load(uint32_t id, const std::string& type) {
     VkCommandBuffer cmd = main.getCurrentCommandBuffer();
     const BufferData& bufferData = bufferMeshes.at(type);
 
+    vkCmdBindDescriptorSets(cmd,
+                            VK_PIPELINE_BIND_POINT_GRAPHICS,
+                            main.pipelineLayout,
+                            0, 1, &ds,
+                            0, nullptr);
+
     VkBuffer vbs[] = { bufferData.vertexBuffer };
     VkDeviceSize offsets[] = { 0 };
     vkCmdBindVertexBuffers(cmd, 0, 1, vbs, offsets);
