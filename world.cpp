@@ -1,4 +1,5 @@
 #include <world.hpp>
+#include <cake.hpp>
 
 World::World(Main& main) : main(main) {
     mesh = new Mesh(main);
@@ -12,6 +13,17 @@ World::~World() {
  */
 Mesh* World::getMesh() const {
     return mesh;
+}
+
+/**
+ * Set
+ */
+void World::set() {
+    mesh->set(main.device,
+            main.commandPool,
+            main.graphicsQueue,
+            main.physicalDevice,
+            main.MAX_FRAMES_IN_FLIGHT);
 }
 
 /**

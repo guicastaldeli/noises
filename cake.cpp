@@ -159,6 +159,7 @@ void Main::SetInit() {
 }
 
 void Main::Init() {
+    world->set();
     world->init();
 }
 

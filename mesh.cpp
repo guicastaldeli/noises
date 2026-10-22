@@ -64,14 +64,14 @@ void Mesh::uploadMesh(const std::string& type, const MeshData& data) {
     createBuffer(indexSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, indexStaging, indexStagingMem);
 
     void* vData;
-    vkMapMemory(main.device, vertexStagingMem, 0, vertexSize, 0, &vData);
+    vkMapMemory(device, vertexStagingMem, 0, vertexSize, 0, &vData);
     memcpy(vData, data.vertices.data(), (size_t)vertexSize);
-    vkUnmapMemory(main.device, vertexStagingMem);
+    vkUnmapMemory(device, vertexStagingMem);
 
     void* iData;
-    vkMapMemory(main.device, indexStagingMem, 0, indexSize, 0, &iData);
+    vkMapMemory(device, indexStagingMem, 0, indexSize, 0, &iData);
     memcpy(iData, data.indices.data(), (size_t)indexSize);
-    vkUnmapMemory(main.device, indexStagingMem);
+    vkUnmapMemory(device, indexStagingMem);
 
     createBuffer(vertexSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, bufferData.vertexBuffer, bufferData.vertexBufferMemory);
     createBuffer(indexSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, bufferData.indexBuffer, bufferData.indexBufferMemory);
@@ -79,10 +79,10 @@ void Mesh::uploadMesh(const std::string& type, const MeshData& data) {
     copyBuffer(vertexStaging, bufferData.vertexBuffer, vertexSize);
     copyBuffer(indexStaging, bufferData.indexBuffer, indexSize);
 
-    vkDestroyBuffer(main.device, vertexStaging, nullptr);
-    vkFreeMemory(main.device, vertexStagingMem, nullptr);
-    vkDestroyBuffer(main.device, indexStaging, nullptr);
-    vkFreeMemory(main.device, indexStagingMem, nullptr);
+    vkDestroyBuffer(device, vertexStaging, nullptr);
+    vkFreeMemory(device, vertexStagingMem, nullptr);
+    vkDestroyBuffer(device, indexStaging, nullptr);
+    vkFreeMemory(device, indexStagingMem, nullptr);
 
     bufferMeshes[type] = bufferData;
 }
@@ -102,22 +102,38 @@ void Mesh::createBuffer(
     bufferInfo.size = size;
     bufferInfo.usage = usage;
     bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    if(vkCreateBuffer(main.device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
+    if(vkCreateBuffer(device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
         throw std::runtime_error("failed to create buffer!");
     }
 
     VkMemoryRequirements memRequirements;
-    vkGetBufferMemoryRequirements(main.device, buffer, &memRequirements);
+    vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
 
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
     allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
-    if(vkAllocateMemory(main.device, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS) {
+    if(vkAllocateMemory(device, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS) {
         throw std::runtime_error("failed to allocate buffer memory!");
     }
 
-    vkBindBufferMemory(main.device, buffer, bufferMemory, 0);
+    vkBindBufferMemory(device, buffer, bufferMemory, 0);
+}
+
+/**
+ * Set
+ */
+void Mesh::set(VkDevice device,
+            VkCommandPool commandPool,
+            VkQueue graphicsQueue,
+            VkPhysicalDevice physicalDevice,
+            uint32_t maxFrames)
+{
+    this->device = device;
+    this->commandPool = commandPool;
+    this->graphicsQueue = graphicsQueue;
+    this->physicalDevice = physicalDevice;
+    this->maxFrames = maxFrames;
 }
 
 /**
@@ -173,10 +189,10 @@ void Mesh::init() {
  */
 void Mesh::cleanup() {
     for(auto& pair : bufferMeshes) {
-        vkDestroyBuffer(main.device, pair.second.vertexBuffer, nullptr);
-        vkFreeMemory(main.device, pair.second.vertexBufferMemory, nullptr);
-        vkDestroyBuffer(main.device, pair.second.indexBuffer, nullptr);
-        vkFreeMemory(main.device, pair.second.indexBufferMemory, nullptr);
+        vkDestroyBuffer(device, pair.second.vertexBuffer, nullptr);
+        vkFreeMemory(device, pair.second.vertexBufferMemory, nullptr);
+        vkDestroyBuffer(device, pair.second.indexBuffer, nullptr);
+        vkFreeMemory(device, pair.second.indexBufferMemory, nullptr);
     }
 
     bufferMeshes.clear();
