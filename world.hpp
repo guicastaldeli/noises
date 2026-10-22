@@ -14,6 +14,8 @@ public:
 
     Mesh* getMesh() const;
 
+    void update();
     void render();
+    
     void cleanup();
 };

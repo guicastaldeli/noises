@@ -15,12 +15,21 @@ Mesh* World::getMesh() const {
 }
 
 /**
+ * Update
+ */
+void World::update() {
+    static float t = 0.0f; //Temporary Tick...
+    t += 0.016f;
+    mesh->setRotation(1, 0.0f, t, 0.0f);
+}
+
+/**
  * 
  * Render
  * 
  */
 void World::render() {
-    mesh->load(1, "triangle");
+    mesh->load(1, "cube");
 }
 
 /**

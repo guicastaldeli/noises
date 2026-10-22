@@ -1,5 +1,6 @@
 #include <mesh.hpp>
 #include <cake.hpp>
+#include <cstring>
 
 Mesh::Mesh(Main& main) : main(main) {};
 Mesh::~Mesh() {};
@@ -120,55 +121,6 @@ void Mesh::createBuffer(
 }
 
 /**
- * Copy Buffer
- */
-void Mesh::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
-    VkCommandBufferAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandPool = main.commandPool;
-    allocInfo.commandBufferCount = 1;
-
-    VkCommandBuffer commandBuffer;
-    vkAllocateCommandBuffers(main.device, &allocInfo, &commandBuffer);
-
-    VkCommandBufferBeginInfo beginInfo{};
-    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-    vkBeginCommandBuffer(commandBuffer, &beginInfo);
-    VkBufferCopy copyRegion{};
-    copyRegion.size = size;
-    vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
-    vkEndCommandBuffer(commandBuffer);
-
-    VkSubmitInfo submitInfo{};
-    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &commandBuffer;
-
-    vkQueueSubmit(main.graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-    vkQueueWaitIdle(main.graphicsQueue);
-    vkFreeCommandBuffers(main.device, main.commandPool, 1, &commandBuffer);
-}
-
-/**
- * Find Memory Type
- */
-uint32_t Mesh::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
-    VkPhysicalDeviceMemoryProperties memProperties;
-    vkGetPhysicalDeviceMemoryProperties(main.physicalDevice, &memProperties);
-
-    for(uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
-        if((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
-            return i;
-        }
-    }
-
-    throw std::runtime_error("failed to find suitable memory type!");
-}
-
-/**
  * 
  * Load
  * 
@@ -186,6 +138,14 @@ void Mesh::load(uint32_t id, const std::string& type) {
         idToType[id] = type;
     }
 
+    Transform& t = transforms.at(id);
+    UniformBuffer ubo{};
+    ubo.model = t.GetModelMatrix();
+    ubo.color = t.color;
+
+    std::memcpy(uniformBuffersMapped[main.currentFrame], &ubo, sizeof(ubo));
+
+    VkDescriptorSet ds = descriptorSets[main.currentFrame];
     VkCommandBuffer cmd = main.getCurrentCommandBuffer();
     const BufferData& bufferData = bufferMeshes.at(type);
 

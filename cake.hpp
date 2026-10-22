@@ -576,8 +576,8 @@ public:
      ******/
     void createSyncObjects() {
         imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-        renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
         inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+        renderFinishedSemaphores.resize(swapChainImages.size());
 
         VkSemaphoreCreateInfo semaphoreInfo{};
         semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -592,6 +592,12 @@ public:
                 vkCreateFence(device, &fenceInfo, nullptr, &inFlightFences[i])                      != VK_SUCCESS)
             {
                 throw std::runtime_error("failed to create sync obj for a frame!");
+            }
+        }
+
+        for(size_t i = 0; i < swapChainImages.size(); i++) {
+            if(vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS) {
+                throw std::runtime_error("failed to create render finished semaphore!");
             }
         }
     }
@@ -612,8 +618,8 @@ public:
         }
 
         vkResetFences(device, 1, &inFlightFences[currentFrame]);
-
         vkResetCommandBuffer(commandBuffers[currentFrame], 0);
+
         recordCommandBuffer(commandBuffers[currentFrame], imageIndex);
 
         VkSubmitInfo submitInfo{};
@@ -626,14 +632,14 @@ public:
         submitInfo.pWaitDstStageMask = waitStages;
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &commandBuffers[currentFrame];
-        
-        VkSemaphore signalSemaphores[] = {renderFinishedSemaphores[currentFrame]};
+
+        VkSemaphore signalSemaphores[] = {renderFinishedSemaphores[imageIndex]};
         submitInfo.signalSemaphoreCount = 1;
         submitInfo.pSignalSemaphores = signalSemaphores;
         if(vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS) {
             throw std::runtime_error("failed to submit draw command buffer!");
         }
-
+        
         VkPresentInfoKHR presentInfo{};
         presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
         presentInfo.waitSemaphoreCount = 1;

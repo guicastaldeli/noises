@@ -8,8 +8,9 @@ Main::Main() {
     world   = new World(*this);
 }
 Main::~Main() {
-    delete shader; shader = nullptr;
-    delete window; window = nullptr;
+    delete shader;  shader = nullptr;
+    delete window;  window = nullptr;
+    delete world;   world = nullptr;
 }
 
 /**
@@ -24,6 +25,7 @@ void Main::Set() {
  */
 void Main::Update() {
     window->update();
+    world->update();
 }
 
 /**
@@ -49,7 +51,7 @@ void Main::Create() {
     rasterizer.rasterizerDiscardEnable = VK_FALSE;
     rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
     rasterizer.lineWidth = 1.0f;
-    rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
+    rasterizer.cullMode = VK_CULL_MODE_NONE;//rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
     rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
     rasterizer.depthBiasClamp = VK_FALSE;
 
@@ -187,8 +189,10 @@ void Main::Cleanup() {
 
     for(size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         vkDestroySemaphore(device, imageAvailableSemaphores[i], nullptr);
-        vkDestroySemaphore(device, renderFinishedSemaphores[i], nullptr);
         vkDestroyFence(device, inFlightFences[i], nullptr);
+    }
+    for(size_t i = 0; i < renderFinishedSemaphores.size(); i++) {
+        vkDestroySemaphore(device, renderFinishedSemaphores[i], nullptr);
     }
 
     if(graphicsPipeline != VK_NULL_HANDLE) vkDestroyPipeline(device, graphicsPipeline, nullptr);
