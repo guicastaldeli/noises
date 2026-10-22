@@ -10,6 +10,8 @@
 #include <utils/vec3.hpp>
 #include <utils/mat4.hpp>
 #include <utils/transform.hpp>
+#include <array>
+#include <cstddef>
 
 class Main;
 
@@ -39,18 +41,19 @@ struct Vertex {
         // inPosition
         a[0].binding = 0;
         a[0].location = 0;
-        a[0].format = VK_FORMAT_R32G32_SFLOAT;
+        a[0].format = VK_FORMAT_R32G32B32_SFLOAT;
         a[0].offset = offsetof(Vertex, position);
         
         // inNormal
         a[1].binding = 0;
         a[1].location = 1;
-        a[1].format = VK_FORMAT_R32G32_SFLOAT;
+        a[1].format = VK_FORMAT_R32G32B32_SFLOAT;
         a[1].offset = offsetof(Vertex, normal);
 
         // inUv
         a[2].binding = 0;
         a[2].location = 2;
+        a[2].format = VK_FORMAT_R32G32_SFLOAT;
         a[2].offset = offsetof(Vertex, uv);
         return a;
     }

@@ -126,7 +126,7 @@ void Main::SetRenderPass(VkCommandBuffer cmd, uint32_t imageIndex) {
     rp.renderArea.offset = {0, 0};
     rp.renderArea.extent = swapChainExtent;
 
-    VkClearValue clear = {{{0.0, 0.0, 0.0, 1.0f}}};
+    VkClearValue clear = {{{0.5, 0.5, 0.5, 1.0f}}};
     rp.clearValueCount = 1;
     rp.pClearValues = &clear;
 
