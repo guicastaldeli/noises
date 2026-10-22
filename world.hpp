@@ -12,5 +12,8 @@ public:
     World(Main& main);
     ~World();
 
+    Mesh* getMesh() const;
+
     void render();
+    void cleanup();
 };

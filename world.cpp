@@ -8,10 +8,24 @@ World::~World() {
 }
 
 /**
+ * Get Mesh
+ */
+Mesh* World::getMesh() const {
+    return mesh;
+}
+
+/**
  * 
  * Render
  * 
  */
 void World::render() {
     mesh->load(1, "triangle");
+}
+
+/**
+ * Cleanup
+ */
+void World::cleanup() {
+    mesh->cleanup();
 }

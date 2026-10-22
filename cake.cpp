@@ -31,7 +31,7 @@ void Main::Update() {
  */
 void Main::Create() {
     auto stageInfos = shader->getStageInfos();
-    VkPipelineVertexInputStateCreateInfo vertexInputInfo = shader->vertexInputInfo();
+    VkPipelineVertexInputStateCreateInfo vertexInputInfo = world->getMesh()->getVertexInputState();
 
     VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
     inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -115,7 +115,7 @@ void Main::Create() {
  * 
  */
 void Main::Render() {
-    
+    world->render();   
 }
 
 void Main::SetRenderPass(VkCommandBuffer cmd, uint32_t imageIndex) {
@@ -134,7 +134,7 @@ void Main::SetRenderPass(VkCommandBuffer cmd, uint32_t imageIndex) {
         vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 
         VkViewport vp{};
-        vp.height = (float)swapChainExtent.width;
+        vp.width = (float)swapChainExtent.width;
         vp.height = (float)swapChainExtent.height;
         vp.maxDepth = 1.0f;
         vkCmdSetViewport(cmd, 0, 1, &vp);
@@ -165,12 +165,13 @@ void Main::Run() {
     Init();
     Set();
 
-    runPipeline();
+    RunPipeline();
 
     shader->run();
-    Render();
-    
+
+    Create();
     Update();
+
     Cleanup();
 }
 
@@ -195,6 +196,7 @@ void Main::Cleanup() {
     if(renderPass != VK_NULL_HANDLE) vkDestroyRenderPass(device, renderPass, nullptr);
     
     shader->cleanup();
+    world->cleanup();
 
     if(device != VK_NULL_HANDLE) vkDestroyDevice(device, nullptr);
     if(window->surface != VK_NULL_HANDLE) vkDestroySurfaceKHR(instance, window->surface, nullptr);
