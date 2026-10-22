@@ -10,7 +10,7 @@
 
 #define MATH_MAT4
 
-#include <vec3.hpp>
+#include <utils/vec3.hpp>
 #include <vector>
 #include <stdexcept>
 #include <map>

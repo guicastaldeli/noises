@@ -9,8 +9,8 @@
 
 #define MATH_TRANSFORM
 
-#include <vec3.hpp>
-#include <mat4.hpp>
+#include <utils/vec3.hpp>
+#include <utils/mat4.hpp>
 #include <vector>
 #include <stdexcept>
 #include <map>
