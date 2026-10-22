@@ -85,6 +85,7 @@ public:
     void Set();
     void Create();
     void Update();
+    void SetInit();
     void Init();
 
     void SetRenderPass(VkCommandBuffer cmd, uint32_t imageIndex);

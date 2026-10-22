@@ -16,6 +16,7 @@ public:
 
     void update();
     void render();
+    void init();
     
     void cleanup();
 };

@@ -154,8 +154,12 @@ void Main::SetRenderPass(VkCommandBuffer cmd, uint32_t imageIndex) {
  * Init
  * 
  */
-void Main::Init() {
+void Main::SetInit() {
     window->init();
+}
+
+void Main::Init() {
+    world->init();
 }
 
 /**
@@ -164,11 +168,12 @@ void Main::Init() {
  * 
  */
 void Main::Run() {
-    Init();
+    SetInit();
     Set();
 
     RunPipeline();
 
+    Init();
     shader->run();
 
     Create();

@@ -238,6 +238,7 @@ public:
     void setColor(uint32_t id, float r, float g, float b);
 
     void load(uint32_t id, const std::string& type);
+    void init();
 
     void cleanup();
 
@@ -313,7 +314,7 @@ public:
     /********* 
      * Create Uniform Buffer
      * *******/
-    void creaateUniformBuffers() {
+    void createUniformBuffers() {
         VkDeviceSize size = sizeof(UniformBuffer);
         uniformBuffers.resize(main.MAX_FRAMES_IN_FLIGHT);
         uniformBuffersMemory.resize(main.MAX_FRAMES_IN_FLIGHT);

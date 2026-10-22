@@ -33,6 +33,15 @@ void World::render() {
 }
 
 /**
+ * 
+ * Init
+ * 
+ */
+void World::init() {
+    mesh->init();
+}
+
+/**
  * Cleanup
  */
 void World::cleanup() {

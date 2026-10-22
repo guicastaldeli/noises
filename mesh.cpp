@@ -157,6 +157,18 @@ void Mesh::load(uint32_t id, const std::string& type) {
 }
 
 /**
+ * 
+ * Init
+ * 
+ */
+void Mesh::init() {
+    createDescriptorSetLayout();
+    createUniformBuffers();
+    createDescriptorPool();
+    createDescriptorSets();
+}
+
+/**
  * Cleanup
  */
 void Mesh::cleanup() {
