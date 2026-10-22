@@ -2,6 +2,7 @@
 
 #include <window.hpp>
 #include <shader.hpp>
+#include <world.hpp>
 #include <vulkan/vulkan.h>
 #include <iostream>
 #include <vector>
@@ -75,17 +76,21 @@ public:
     std::vector<VkFence> inFlightFences;
     bool framebufferResized = false;
 
-    Window* window = nullptr;
-    Shader* shader = nullptr;
+    Window* window  = nullptr;
+    Shader* shader  = nullptr;
+    World* world    = nullptr;
 
     const int MAX_FRAMES_IN_FLIGHT = 2;
 
     void Set();
+    void Create();
     void Update();
     void Init();
 
+    void SetRenderPass(VkCommandBuffer cmd, uint32_t imageIndex);
     void Render();
     void Run();
+
     void Cleanup();
 
     /*******
@@ -588,6 +593,10 @@ public:
         if(vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
             throw std::runtime_error("failed to record command buffer!");
         }
+    }
+
+    VkCommandBuffer getCurrentCommandBuffer() const {
+        return commandBuffers[currentFrame];
     }
 
     /*******

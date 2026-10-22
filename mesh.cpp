@@ -174,14 +174,26 @@ uint32_t Mesh::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags propert
  * 
  */
 void Mesh::load(uint32_t id, const std::string& type) {
-    idToType[id] = type;
+    if(bufferMeshes.find(type) == bufferMeshes.end()) {
+        const auto& dataMap = Data();
+        auto it = dataMap.find(type);
+        if(it == dataMap.end()) throw std::runtime_error("Unknown mesh type: " + type);
+        uploadMesh(type, it->second);
+    }
 
-    const auto& dataMap = Data();
-    auto it = dataMap.find(type);
-    if(it == dataMap.end()) throw std::runtime_error("Unknown mesh type: " + type);
-    if(bufferMeshes.find(type) == bufferMeshes.end()) uploadMesh(type, it->second);
-    
-    if(transforms.find(id) == transforms.end()) transforms[id] = Transform{};
+    if(transforms.find(id) == transforms.end()) {
+        transforms[id] = Transform{};
+        idToType[id] = type;
+    }
+
+    VkCommandBuffer cmd = main.getCurrentCommandBuffer();
+    const BufferData& bufferData = bufferMeshes.at(type);
+
+    VkBuffer vbs[] = { bufferData.vertexBuffer };
+    VkDeviceSize offsets[] = { 0 };
+    vkCmdBindVertexBuffers(cmd, 0, 1, vbs, offsets);
+    vkCmdBindIndexBuffer(cmd, bufferData.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+    vkCmdDrawIndexed(cmd, bufferData.indexCount, 1, 0, 0, 0);
 }
 
 /**

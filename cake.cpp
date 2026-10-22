@@ -3,13 +3,14 @@
 #include <window.hpp>
 
 Main::Main() {
-    window = new Window(*this);
-    shader = new Shader(*this);
+    window  = new Window(*this);
+    shader  = new Shader(*this);
+    world   = new World(*this);
 }
 Main::~Main() {
     delete shader; shader = nullptr;
     delete window; window = nullptr;
-};
+}
 
 /**
  * Set
@@ -26,11 +27,9 @@ void Main::Update() {
 }
 
 /**
- * 
- * Render
- * 
+ * Create
  */
-void Main::Render() {
+void Main::Create() {
     auto stageInfos = shader->getStageInfos();
     VkPipelineVertexInputStateCreateInfo vertexInputInfo = shader->vertexInputInfo();
 
@@ -108,6 +107,44 @@ void Main::Render() {
     if(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
         throw std::runtime_error("failed to create graphics pipeline!");
     }
+}
+
+/**
+ * 
+ * Render
+ * 
+ */
+void Main::Render() {
+    
+}
+
+void Main::SetRenderPass(VkCommandBuffer cmd, uint32_t imageIndex) {
+    VkRenderPassBeginInfo rp{};
+    rp.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    rp.renderPass = renderPass;
+    rp.framebuffer = swapChainFramebuffers[imageIndex];
+    rp.renderArea.offset = {0, 0};
+    rp.renderArea.extent = swapChainExtent;
+
+    VkClearValue clear = {{{0.0, 0.0, 0.0, 1.0f}}};
+    rp.clearValueCount = 1;
+    rp.pClearValues = &clear;
+
+    vkCmdBeginRenderPass(cmd, &rp, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+
+        VkViewport vp{};
+        vp.height = (float)swapChainExtent.width;
+        vp.height = (float)swapChainExtent.height;
+        vp.maxDepth = 1.0f;
+        vkCmdSetViewport(cmd, 0, 1, &vp);
+
+        VkRect2D sc{};
+        sc.extent = swapChainExtent;
+        vkCmdSetScissor(cmd, 0, 1, &sc);
+
+        Render();
+    vkCmdEndRenderPass(cmd);
 }
 
 /**

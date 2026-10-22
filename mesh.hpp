@@ -12,6 +12,57 @@
 #include <utils/transform.hpp>
 
 class Main;
+
+/***************
+ * 
+ *  
+ * Vertex
+ * 
+ * 
+ *  **********/
+struct Vertex {
+    float position[3];
+    float normal[3];
+    float uv[3];
+
+    static VkVertexInputBindingDescription getBindingDescription() {
+        VkVertexInputBindingDescription b{};
+        b.binding = 0;
+        b.stride = sizeof(Vertex);
+        b.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+        return b;
+    }
+
+    static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions() {
+        std::array<VkVertexInputAttributeDescription, 3> a{};
+        
+        // inPosition
+        a[0].binding = 0;
+        a[0].location = 0;
+        a[0].format = VK_FORMAT_R32G32_SFLOAT;
+        a[0].offset = offsetof(Vertex, position);
+        
+        // inNormal
+        a[1].binding = 0;
+        a[1].location = 1;
+        a[1].format = VK_FORMAT_R32G32_SFLOAT;
+        a[1].offset = offsetof(Vertex, normal);
+
+        // inUv
+        a[2].binding = 0;
+        a[2].location = 2;
+        a[2].offset = offsetof(Vertex, uv);
+        return a;
+    }
+};
+
+/***************
+ * 
+ *  
+ * Mesh
+ * 
+ * 
+ *  **********/
 class Mesh {
 private:
     /*********
@@ -46,8 +97,8 @@ private:
      */
 
     std::unordered_map<std::string, BufferData> bufferMeshes;
-    std::unordered_map<uint32_t, Transform> transforms;
-    std::unordered_map<uint32_t, std::string> idToType;
+    std::unordered_map<uint32_t, Transform>     transforms;
+    std::unordered_map<uint32_t, std::string>   idToType;
 
     Main& main;
 
@@ -166,4 +217,20 @@ public:
     void load(uint32_t id, const std::string& type);
 
     void cleanup();
+
+    /********* 
+     * Get Vertex Input State
+     * *******/
+    VkPipelineVertexInputStateCreateInfo getVertexInputState() const {
+        static auto bindingDesc = Vertex::getBindingDescription();
+        static auto attrDesc = Vertex::getAttributeDescriptions();
+
+        VkPipelineVertexInputStateCreateInfo info{};
+        info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+        info.vertexBindingDescriptionCount = 1;
+        info.pVertexBindingDescriptions = &bindingDesc;
+        info.vertexAttributeDescriptionCount = static_cast<uint32_t>(attrDesc.size());
+        info.pVertexAttributeDescriptions = attrDesc.data();
+        return info;
+    }
 };
