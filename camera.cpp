@@ -1,12 +1,22 @@
 #include <camera.hpp>
 #include <cake.hpp>
 #include <cmath>
+#include <input.hpp>
 
-Camera::Camera(Main& main) : main(main) {
+Camera::Camera(Main& main, Tick& tick) : 
+    main(main),
+    tick(tick) {
     position = Vec3(POS_X, -POS_Y, POS_Z);
     set();
 }
 Camera::~Camera() {};
+
+/**
+ * Set Input
+ */
+void Camera::setInput(Input* input) {
+    this->input = input;
+}
 
 /**
  * Set Position
@@ -127,6 +137,47 @@ void Camera::set() {
     up.x = right.y * forward.z - right.z * forward.y;
     up.y = right.z * forward.x - right.x * forward.z;
     up.z = right.x * forward.y - right.y * forward.x;
+}
+
+/**
+ * Move
+ */
+void Camera::move() {
+    Vec3 move(0.0f, 0.0f, 0.0f);
+    float f = 1.0f;
+    if(input->down(Bindings::FORWARD))   move = move + forward;
+    if(input->down(Bindings::BACKWARD))  move = move - forward;
+    if(input->down(Bindings::RIGHT))     move = move + right;
+    if(input->down(Bindings::LEFT))      move = move - right;
+    if(input->down(Bindings::UP))        move.y += f;
+    if(input->down(Bindings::DOWN))      move.y -= f;
+
+    float len = std::sqrt(move.x*move.x + move.y*move.y + move.z*move.z);
+    int v = 1e-6f;
+    if(len > v) {
+        move.x /= len; move.y /= len; move.z /= len;
+        float speed = MOVE_SPEED;
+        position = position + move * (speed * tick.GetDeltaTime());
+    }
+}
+
+/**
+ * 
+ * Update
+ * 
+ */
+void Camera::update() {
+    if(input->isCursorCaptured()) {
+        yaw += static_cast<float>(input->mouseDeltaX()) * MOUSE_SENSV;
+        pitch += static_cast<float>(input->mouseDeltaX()) * MOUSE_SENSV;
+
+        const float limit = 1.55334f;
+        if(pitch > limit) pitch = limit;
+        if(pitch < -limit) pitch = -limit;
+    }
+
+    set();
+    move();
 }
 
 /**

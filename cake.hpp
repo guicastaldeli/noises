@@ -13,6 +13,7 @@
 #include <tick.hpp>
 #include <shader.hpp>
 #include <camera.hpp>
+#include <input.hpp>
 #include <mesh.hpp>
 #include <world.hpp>
 #include <vulkan/vulkan.h>
@@ -92,6 +93,7 @@ public:
     Tick* tick      = nullptr;
     Shader* shader  = nullptr;
     Camera* camera  = nullptr;
+    Input* input    = nullptr;
     Mesh* mesh      = nullptr;
     World* world    = nullptr;
 

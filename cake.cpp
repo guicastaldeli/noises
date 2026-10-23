@@ -15,7 +15,8 @@ Main::Main() {
     window  = new Window(*this);
     tick    = new Tick();
     shader  = new Shader(*this);
-    camera  = new Camera(*this);
+    camera  = new Camera(*this, *tick);
+    input   = new Input(*window);
     mesh    = new Mesh(*this, *camera);
     world   = new World(*tick, *mesh);
 }
@@ -203,6 +204,7 @@ void Main::SetInit() {
 }
 
 void Main::Init() {
+    camera->setInput(input);
     camera->init();
     mesh->set(device,
                 commandPool,
