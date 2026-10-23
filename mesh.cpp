@@ -63,13 +63,6 @@ const Mesh::BufferData& Mesh::getBufferData(const std::string& type) const {
 }
 
 /**
- * Get Data Size
- */
-size_t Mesh::getInstanceByteSize() const {
-   return sizeof(Instance);
-}
-
-/**
  * Upload Mesh
  */
 void Mesh::uploadMesh(const std::string& type, const MeshData& data) {

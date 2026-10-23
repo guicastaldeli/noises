@@ -134,10 +134,6 @@ private:
      * Instance
      * 
      *******/
-    struct Instance {
-        Mat4 model;
-    };
-
     struct InstanceEntry {
         Mat4 model;
         std::string type;
@@ -274,8 +270,6 @@ private:
 public:
     Mesh(Main& main, Camera& camera);
     ~Mesh();
-
-    size_t getInstanceByteSize() const;
 
     void setPosition(uint32_t id, float x, float y, float z);
     void setRotation(uint32_t id, float x, float y, float z);
@@ -476,7 +470,7 @@ public:
         for(int i = 0; i < 4; i++) {
             instanceAttr[i].binding = 1;
             instanceAttr[i].location = 4 + i;
-            instanceAttr[i].format = VK_FORMAT_R32G32B32_SFLOAT;
+            instanceAttr[i].format = VK_FORMAT_R32G32B32A32_SFLOAT;
             instanceAttr[i].offset = sizeof(float) * 4 * i;
         }
 
