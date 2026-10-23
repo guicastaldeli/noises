@@ -1,6 +1,16 @@
+/****************************** 
+ * 
+ * 
+ * ***header
+ * Main entry-point and main
+ * initializer... 
+ * 
+ * 
+ * ***********************/
 #pragma once
 
 #include <window.hpp>
+#include <tick.hpp>
 #include <shader.hpp>
 #include <camera.hpp>
 #include <mesh.hpp>
@@ -79,6 +89,7 @@ public:
     bool framebufferResized = false;
 
     Window* window  = nullptr;
+    Tick* tick      = nullptr;
     Shader* shader  = nullptr;
     Camera* camera  = nullptr;
     Mesh* mesh      = nullptr;
@@ -622,8 +633,7 @@ public:
     /*******
      * Draw
      ******/
-    void drawFrame() {
-        world->update(); 
+    void drawFrame() { 
         vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
         uint32_t imageIndex;

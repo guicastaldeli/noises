@@ -24,11 +24,12 @@ struct Transform {
 
     Mat4 GetModelMatrix() const {
         Mat4 model = Mat4::Identity();
-        model = Mat4::Translate(position) * model;
-        model = Mat4::RotateX(rotation.x) * model;
-        model = Mat4::RotateY(rotation.y) * model;
-        model = Mat4::RotateZ(rotation.z) * model;
-        model = Mat4::Scale(scale) * model;
+        Mat4 T = Mat4::Translate(position);
+        Mat4 Rx = Mat4::RotateX(rotation.x);
+        Mat4 Ry = Mat4::RotateY(rotation.y);
+        Mat4 Rz = Mat4::RotateZ(rotation.z);
+        Mat4 S = Mat4::Scale(scale);
+        model = T * Rx * Ry * Rz * S * model;
         return model;
     }
 };

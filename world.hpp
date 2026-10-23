@@ -1,15 +1,15 @@
 #pragma once
 
+#include <tick.hpp>
 #include <mesh.hpp>
 
-class Main;
 class World {
 private:
-    Main& main;
+    Tick& tick;
     Mesh& mesh;
 
 public:
-    World(Main& main, Mesh& mesh);
+    World(Tick& tick, Mesh& mesh);
     ~World();
 
     void set();

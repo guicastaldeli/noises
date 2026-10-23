@@ -1,3 +1,11 @@
+/****************************** 
+ * 
+ * 
+ * Main entry-point and main
+ * initializer...
+ * 
+ * 
+ * ***********************/
 #include <cake.hpp>
 #include <iostream>
 #include <window.hpp>
@@ -5,16 +13,19 @@
 
 Main::Main() {
     window  = new Window(*this);
+    tick    = new Tick();
     shader  = new Shader(*this);
     camera  = new Camera(*this);
     mesh    = new Mesh(*this, *camera);
-    world   = new World(*this, *mesh);
+    world   = new World(*tick, *mesh);
 }
 Main::~Main() {
-    delete shader;  shader = nullptr;
-    delete window;  window = nullptr;
-    delete mesh;    mesh = nullptr;
     delete world;   world = nullptr;
+    delete mesh;    mesh = nullptr;
+    delete camera;  camera = nullptr;
+    delete shader;  shader = nullptr;
+    delete tick;    tick = nullptr;
+    delete window;  window = nullptr;
 }
 
 /**
@@ -36,8 +47,15 @@ void Main::Set() {
  * Update
  */
 void Main::Update() {
-    window->update();
-    //world->update();
+    while(!window->shouldClose()) {
+        tick->Update();
+        window->update();
+        mesh->beginFrame();
+        world->update();
+        drawFrame();
+    }
+
+    vkDeviceWaitIdle(device);
 }
 
 /**
@@ -102,19 +120,12 @@ void Main::Create() {
     dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
     dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
     dynamicState.pDynamicStates = dynamicStates.data();
-
-    VkPushConstantRange pushRange{};
-    pushRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-    pushRange.offset = 0;
-    pushRange.size = mesh->getInstanceByteSize();
     
     VkDescriptorSetLayout dsLayout = mesh->getDescriptorSetLayout();
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipelineLayoutInfo.setLayoutCount = 1;
     pipelineLayoutInfo.pSetLayouts = &dsLayout;
-    pipelineLayoutInfo.pushConstantRangeCount = 1;
-    pipelineLayoutInfo.pPushConstantRanges = &pushRange;
     if(vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
         throw std::runtime_error("failed to create pipeline layout!");
     }
@@ -146,7 +157,8 @@ void Main::Create() {
  * 
  */
 void Main::Render() {
-    world->render();   
+    world->render();
+    mesh->render();
 }
 
 void Main::SetRenderPass(VkCommandBuffer cmd, uint32_t imageIndex) {

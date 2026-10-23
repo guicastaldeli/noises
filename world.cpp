@@ -1,8 +1,8 @@
 #include <world.hpp>
-#include <cake.hpp>
+#include <iostream>
 
-World::World(Main& main, Mesh& mesh) : 
-    main(main),
+World::World(Tick& tick, Mesh& mesh) : 
+    tick(tick),
     mesh(mesh) {}
 World::~World() {};
 
@@ -17,11 +17,10 @@ void World::set() {
  * Update
  */
 void World::update() {
-    static float t = 0.0f; //Temporary Tick...
-    t += 0.016f;
-    //mesh.setRotation(1, 0.0f, t, 0.0f);
-    //mesh.setRotation(2, t, 0.0f, 0.0f);
-    //mesh.setRotation(3, 0.0f, 0.0f, t);
+    float deltaTime = tick.GetDeltaTime() * 0.001f;
+    mesh.setRotation(1, 0.0f, deltaTime, 0.0f);
+    mesh.setRotation(2, deltaTime, 0.0f, 0.0f);
+    mesh.setRotation(3, 0.0f, 0.0f, deltaTime);
 }
 
 /**
@@ -30,14 +29,18 @@ void World::update() {
  * 
  */
 void World::render() {
-    mesh.setPosition(1, -1.5f, 2.0f, 0.0f);
+    mesh.setPosition(1, -1.5f, 0.0f, 0.0f);
     mesh.load(1, "cube");
 
     mesh.setPosition(2,  0.0f, 0.0f, 0.0f);
-    //mesh.load(2, "cube");
+    mesh.load(2, "cube");
 
-    mesh.setPosition(3, 1.5f, 0.0f, -3.0f);
-    //mesh.load(3, "cube");
+    mesh.setPosition(3, 1.5f, 0.0f, 0.0f);
+    mesh.load(3, "cube");
+
+    if(tick.ShouldTick()) {
+        std::cout << "Draw calls: " << mesh.getDrawCalls() << std::endl;
+    }
 }
 
 /**

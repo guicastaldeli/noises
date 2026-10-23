@@ -1,3 +1,11 @@
+/****************************** 
+ * 
+ * 
+ * ***header
+ * main Mesh data config...
+ * 
+ * 
+ * ***********************/
 #pragma once
 
 #include <vulkan/vulkan.h>
@@ -108,6 +116,36 @@ private:
      * 
      */
 
+    /**********
+     * 
+     * Uniform Buffer
+     * 
+     *******/
+    struct UniformBuffer {
+        Mat4 view;
+        Mat4 proj;
+    };
+    /**
+     * 
+     */
+
+    /**********
+     * 
+     * Instance
+     * 
+     *******/
+    struct Instance {
+        Mat4 model;
+    };
+
+    struct InstanceEntry {
+        Mat4 model;
+        std::string type;
+    };
+    /**
+     * 
+     */
+
     std::unordered_map<std::string, BufferData> bufferMeshes;
     std::unordered_map<uint32_t, Transform>     transforms;
     std::unordered_map<uint32_t, std::string>   idToType;
@@ -124,6 +162,13 @@ private:
     std::vector<VkBuffer> uniformBuffers;
     std::vector<VkDeviceMemory> uniformBuffersMemory;
     std::vector<void*> uniformBuffersMapped;
+
+    std::vector<InstanceEntry> pendingInstances;
+    VkBuffer instanceBuffer = VK_NULL_HANDLE;
+    VkDeviceMemory instanceBufferMemory = VK_NULL_HANDLE;
+    VkDeviceSize instanceBufferSize = 0;
+
+    uint32_t drawCalls = 0;
 
     Main& main;
     Camera& camera;
@@ -227,31 +272,6 @@ private:
     /*********** */
 
 public:
-    /**********
-     * 
-     * Uniform Buffer
-     * 
-     *******/
-    struct UniformBuffer {
-        Mat4 view;
-        Mat4 proj;
-    };
-    /**
-     * 
-     */
-
-    /**********
-     * 
-     * Instance
-     * 
-     *******/
-    struct Instance {
-        Mat4 model;
-    };
-    /**
-     * 
-     */
-
     Mesh(Main& main, Camera& camera);
     ~Mesh();
 
@@ -267,10 +287,26 @@ public:
             VkQueue graphicsQueue,
             VkPhysicalDevice physicalDevice,
             uint32_t maxFrames);
+    void setInstanceBuffer(VkDeviceSize size);
     void load(uint32_t id, const std::string& type);
     void init();
+    void render();
 
     void cleanup();
+
+    /**
+     * Begin Frame
+     */
+    void beginFrame() {
+        drawCalls = 0;
+    }
+
+    /**
+     * Get Draw Calls
+     */
+    uint32_t getDrawCalls() const {
+        return drawCalls;
+    }
 
     /********* 
      * Copy Buffer
@@ -431,12 +467,33 @@ public:
         static auto bindingDesc = Vertex::getBindingDescription();
         static auto attrDesc = Vertex::getAttributeDescriptions();
 
+        static VkVertexInputBindingDescription instanceBinding{};
+        instanceBinding.binding = 1;
+        instanceBinding.stride = sizeof(Mat4);
+        instanceBinding.inputRate = VK_VERTEX_INPUT_RATE_INSTANCE;
+
+        static std::array<VkVertexInputAttributeDescription, 4> instanceAttr{};
+        for(int i = 0; i < 4; i++) {
+            instanceAttr[i].binding = 1;
+            instanceAttr[i].location = 4 + i;
+            instanceAttr[i].format = VK_FORMAT_R32G32B32_SFLOAT;
+            instanceAttr[i].offset = sizeof(float) * 4 * i;
+        }
+
+        static std::array<VkVertexInputBindingDescription, 2> bindings = {
+            bindingDesc,
+            instanceBinding
+        };
+        static std::array<VkVertexInputAttributeDescription, 8> allAttrs{};
+        for(int i = 0; i < 4; i++) allAttrs[i] = attrDesc[i];
+        for(int i = 0; i < 4; i++) allAttrs[4+i] = instanceAttr[i];
+
         VkPipelineVertexInputStateCreateInfo info{};
         info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-        info.vertexBindingDescriptionCount = 1;
-        info.pVertexBindingDescriptions = &bindingDesc;
-        info.vertexAttributeDescriptionCount = static_cast<uint32_t>(attrDesc.size());
-        info.pVertexAttributeDescriptions = attrDesc.data();
+        info.vertexBindingDescriptionCount = static_cast<uint32_t>(bindings.size());
+        info.pVertexBindingDescriptions = bindings.data();
+        info.vertexAttributeDescriptionCount = static_cast<uint32_t>(allAttrs.size());
+        info.pVertexAttributeDescriptions = allAttrs.data();
         return info;
     }
     

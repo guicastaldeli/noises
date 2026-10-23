@@ -57,12 +57,14 @@ void Window::set() {
  * Update
  */
 void Window::update() {
-    while(!glfwWindowShouldClose(window)) {
-        glfwPollEvents();
-        main.drawFrame();
-    }
+    glfwPollEvents();
+}
 
-    vkDeviceWaitIdle(main.device);
+/**
+ * Should Close
+ */
+bool Window::shouldClose() const {
+    return glfwWindowShouldClose(window);
 }
 
 /**

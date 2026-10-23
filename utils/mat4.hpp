@@ -21,14 +21,19 @@ struct Mat4 {
 
     static Mat4 Identity() {
         Mat4 mat;
-        mat.m[0][0] = 1.0f; mat.m[1][1] = 1.0f;
-        mat.m[2][2] = 1.0f; mat.m[3][3] = 1.0f;
+        mat.m[0][0] = 1.0f; 
+        mat.m[1][1] = 1.0f;
+        
+        mat.m[2][2] = 1.0f; 
+        mat.m[3][3] = 1.0f;
         return mat;
     }
 
     static Mat4 Translate(const Vec3& v) {
         Mat4 mat = Identity();
-        mat.m[3][0] = v.x; mat.m[3][1] = v.y; mat.m[3][2] = v.z;
+        mat.m[0][3] = v.x; 
+        mat.m[1][3] = v.y; 
+        mat.m[2][3] = v.z;
         return mat;
     }
 
@@ -41,24 +46,33 @@ struct Mat4 {
     static Mat4 RotateX(float angle) {
         Mat4 mat = Identity();
         float c = std::cos(angle), s = std::sin(angle);
-        mat.m[1][1] = c; mat.m[1][2] = s;
-        mat.m[2][1] = -s; mat.m[2][2] = c;
+        mat.m[1][1] = c; 
+        mat.m[1][2] = -s;
+        
+        mat.m[2][1] = s; 
+        mat.m[2][2] = c;
         return mat;
     }
 
     static Mat4 RotateY(float angle) {
         Mat4 mat = Identity();
         float c = std::cos(angle), s = std::sin(angle);
-        mat.m[0][0] = c; mat.m[0][2] = -s;
-        mat.m[2][0] = s; mat.m[2][2] = c;
+        mat.m[0][0] = c; 
+        mat.m[0][2] = s;
+        
+        mat.m[2][0] = -s; 
+        mat.m[2][2] = c;
         return mat;
     }
 
     static Mat4 RotateZ(float angle) {
         Mat4 mat = Identity();
         float c = std::cos(angle), s = std::sin(angle);
-        mat.m[0][0] = c; mat.m[0][1] = s;
-        mat.m[1][0] = -s; mat.m[1][1] = c;
+        mat.m[0][0] = c; 
+        mat.m[0][1] = -s;
+        
+        mat.m[1][0] = s; 
+        mat.m[1][1] = c;
         return mat;
     }
 

@@ -4,8 +4,6 @@
 
 Camera::Camera(Main& main) : main(main) {
     position = Vec3(POS_X, -POS_Y, POS_Z);
-    yaw = 0.0f;
-    pitch = 0.0f;
     set();
 }
 Camera::~Camera() {};

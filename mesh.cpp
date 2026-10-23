@@ -1,3 +1,10 @@
+/****************************** 
+ * 
+ * 
+ * main Mesh data config...
+ * 
+ * 
+ * ***********************/
 #include <mesh.hpp>
 #include <cake.hpp>
 #include <camera.hpp>
@@ -21,7 +28,9 @@ void Mesh::setPosition(uint32_t id, float x, float y, float z) {
  */
 void Mesh::setRotation(uint32_t id, float x, float y, float z) {
     auto& t = transforms[id];
-    t.rotation = Vec3(x, y, z);
+    t.rotation.x += x;
+    t.rotation.y += y;
+    t.rotation.z += z;
 }
 
 /**
@@ -150,6 +159,24 @@ void Mesh::set(VkDevice device,
 }
 
 /**
+ * Set Instance Buffer
+ */
+void Mesh::setInstanceBuffer(VkDeviceSize size) {
+    if(instanceBuffer != VK_NULL_HANDLE && instanceBufferSize >= size) return;
+    if(instanceBuffer != VK_NULL_HANDLE) {
+        vkDestroyBuffer(device, instanceBuffer, nullptr);
+        vkFreeMemory(device, instanceBufferMemory, nullptr);
+    }
+
+    createBuffer(size,
+                VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                instanceBuffer, instanceBufferMemory);
+    
+    instanceBufferSize = size;
+}
+
+/**
  * 
  * Load
  * 
@@ -168,6 +195,22 @@ void Mesh::load(uint32_t id, const std::string& type) {
     }
 
     Transform& t = transforms.at(id);
+    Mat4 model = t.GetModelMatrix();
+
+    InstanceEntry entry{};
+    entry.model = model;
+    entry.type = type;
+    pendingInstances.push_back(entry);
+}
+
+/**
+ * 
+ * Render
+ * 
+ */
+void Mesh::render() {
+    if(pendingInstances.empty()) return;
+
     UniformBuffer ubo{};
     Mat4 view = camera.getViewMatrix();
     Mat4 proj = camera.getProjectionMatrix();
@@ -180,32 +223,48 @@ void Mesh::load(uint32_t id, const std::string& type) {
 
     std::memcpy(uniformBuffersMapped[main.currentFrame], &ubo, sizeof(ubo));
 
-    Mat4 model = t.GetModelMatrix();
-    Instance i{};
-    for(int r = 0; r < 4; ++r) {
-        for(int c = 0; c < 4; ++c) {
-            i.model.m[r][c] = model.m[c][r];
+    std::unordered_map<std::string, std::vector<Mat4>> byType;
+    for(auto& entry : pendingInstances) {
+        Mat4 transported{};
+        for(int r = 0; r < 4; ++r) {
+            for(int c = 0; c < 4; ++c) {
+                transported.m[r][c] = entry.model.m[c][r];
+            }
         }
+        byType[entry.type].push_back(transported);
     }
 
-    VkDescriptorSet ds = descriptorSets[main.currentFrame];
     VkCommandBuffer cmd = main.getCurrentCommandBuffer();
-    const BufferData& bufferData = bufferMeshes.at(type);
-
+    VkDescriptorSet ds = descriptorSets[main.currentFrame];
     vkCmdBindDescriptorSets(cmd,
                             VK_PIPELINE_BIND_POINT_GRAPHICS,
                             main.pipelineLayout,
                             0, 1, &ds,
                             0, nullptr);
-    vkCmdPushConstants(cmd, main.pipelineLayout,
-                        VK_SHADER_STAGE_VERTEX_BIT,
-                        0, sizeof(Instance), &i);
+    
+    for(auto& [type, models] : byType) {
+        VkDeviceSize size = sizeof(Mat4) * models.size();
+        setInstanceBuffer(size);
 
-    VkBuffer vbs[] = { bufferData.vertexBuffer };
-    VkDeviceSize offsets[] = { 0 };
-    vkCmdBindVertexBuffers(cmd, 0, 1, vbs, offsets);
-    vkCmdBindIndexBuffer(cmd, bufferData.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
-    vkCmdDrawIndexed(cmd, bufferData.indexCount, 1, 0, 0, 0);
+        void* data;
+        vkMapMemory(device, instanceBufferMemory, 0, size, 0, &data);
+        memcpy(data, models.data(), size);
+        vkUnmapMemory(device, instanceBufferMemory);
+
+        const BufferData& bufferData = bufferMeshes.at(type);
+
+        VkBuffer vbs[] = { bufferData.vertexBuffer, instanceBuffer };
+        VkDeviceSize offsets[] = { 0, 0 };
+        vkCmdBindVertexBuffers(cmd, 0, 2, vbs, offsets);
+        vkCmdBindIndexBuffer(cmd, bufferData.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+        vkCmdDrawIndexed(cmd, bufferData.indexCount,
+                        static_cast<uint32_t>(models.size()),
+                        0, 0, 0);
+
+        drawCalls++;
+    }
+
+    pendingInstances.clear();
 }
 
 /**

@@ -39,6 +39,7 @@ public:
     
     void set();
     void update();
+    bool shouldClose() const;
     void init();
     void cleanup();
 
