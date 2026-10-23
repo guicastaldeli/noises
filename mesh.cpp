@@ -56,8 +56,8 @@ const Mesh::BufferData& Mesh::getBufferData(const std::string& type) const {
 /**
  * Get Data Size
  */
-size_t Mesh::getInstanceSize() const {
-    return instances.size();
+size_t Mesh::getInstanceByteSize() const {
+   return sizeof(Instance);
 }
 
 /**

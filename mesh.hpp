@@ -125,8 +125,6 @@ private:
     std::vector<VkDeviceMemory> uniformBuffersMemory;
     std::vector<void*> uniformBuffersMapped;
 
-    std::vector<Instance> instances;
-
     Main& main;
     Camera& camera;
 
@@ -257,7 +255,7 @@ public:
     Mesh(Main& main, Camera& camera);
     ~Mesh();
 
-    size_t getInstanceSize() const;
+    size_t getInstanceByteSize() const;
 
     void setPosition(uint32_t id, float x, float y, float z);
     void setRotation(uint32_t id, float x, float y, float z);
