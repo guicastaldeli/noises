@@ -50,8 +50,8 @@ void Main::Update() {
     while(!window->shouldClose()) {
         tick->Update();
         window->update();
-        mesh->beginFrame();
         world->update();
+        mesh->beginFrame();
         drawFrame();
     }
 
