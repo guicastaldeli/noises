@@ -54,6 +54,13 @@ const Mesh::BufferData& Mesh::getBufferData(const std::string& type) const {
 }
 
 /**
+ * Get Data Size
+ */
+size_t Mesh::getInstanceSize() const {
+    return instances.size();
+}
+
+/**
  * Upload Mesh
  */
 void Mesh::uploadMesh(const std::string& type, const MeshData& data) {
@@ -162,19 +169,24 @@ void Mesh::load(uint32_t id, const std::string& type) {
 
     Transform& t = transforms.at(id);
     UniformBuffer ubo{};
-    Mat4 model = t.GetModelMatrix();
     Mat4 view = camera.getViewMatrix();
     Mat4 proj = camera.getProjectionMatrix();
-
     for(int r = 0; r < 4; ++r) {
         for(int c = 0; c < 4; ++c) {
-            ubo.model.m[r][c] = model.m[c][r];
             ubo.view.m[r][c] = view.m[c][r];
             ubo.proj.m[r][c] = proj.m[c][r];
         }
     }
 
     std::memcpy(uniformBuffersMapped[main.currentFrame], &ubo, sizeof(ubo));
+
+    Mat4 model = t.GetModelMatrix();
+    Instance i{};
+    for(int r = 0; r < 4; ++r) {
+        for(int c = 0; c < 4; ++c) {
+            i.model.m[r][c] = model.m[c][r];
+        }
+    }
 
     VkDescriptorSet ds = descriptorSets[main.currentFrame];
     VkCommandBuffer cmd = main.getCurrentCommandBuffer();
@@ -185,6 +197,9 @@ void Mesh::load(uint32_t id, const std::string& type) {
                             main.pipelineLayout,
                             0, 1, &ds,
                             0, nullptr);
+    vkCmdPushConstants(cmd, main.pipelineLayout,
+                        VK_SHADER_STAGE_VERTEX_BIT,
+                        0, sizeof(Instance), &i);
 
     VkBuffer vbs[] = { bufferData.vertexBuffer };
     VkDeviceSize offsets[] = { 0 };

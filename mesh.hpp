@@ -125,6 +125,8 @@ private:
     std::vector<VkDeviceMemory> uniformBuffersMemory;
     std::vector<void*> uniformBuffersMapped;
 
+    std::vector<Instance> instances;
+
     Main& main;
     Camera& camera;
 
@@ -229,11 +231,10 @@ private:
 public:
     /**********
      * 
-     * Mesh Data
+     * Uniform Buffer
      * 
      *******/
     struct UniformBuffer {
-        Mat4 model;
         Mat4 view;
         Mat4 proj;
     };
@@ -241,8 +242,22 @@ public:
      * 
      */
 
+    /**********
+     * 
+     * Instance
+     * 
+     *******/
+    struct Instance {
+        Mat4 model;
+    };
+    /**
+     * 
+     */
+
     Mesh(Main& main, Camera& camera);
     ~Mesh();
+
+    size_t getInstanceSize() const;
 
     void setPosition(uint32_t id, float x, float y, float z);
     void setRotation(uint32_t id, float x, float y, float z);
