@@ -106,8 +106,8 @@ void Main::Create() {
     VkPushConstantRange pushRange{};
     pushRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
     pushRange.offset = 0;
-    pushRange.size = sizeof(mesh->getInstanceByteSize());
-
+    pushRange.size = mesh->getInstanceByteSize();
+    
     VkDescriptorSetLayout dsLayout = mesh->getDescriptorSetLayout();
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;

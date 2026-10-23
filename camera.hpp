@@ -22,11 +22,11 @@ public:
 
     float zNear = 0.1f;
     float zFar = 100.0f;
-    float fov = 120.0f;
+    float fov = 60.0f;
 
     float POS_X = 0.0f;
     float POS_Y = 1.0f;
-    float POS_Z = 2.0f;
+    float POS_Z = 6.0f;
 
     void setPosition();
     void setYawPitch();
