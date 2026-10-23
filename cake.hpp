@@ -2,6 +2,8 @@
 
 #include <window.hpp>
 #include <shader.hpp>
+#include <camera.hpp>
+#include <mesh.hpp>
 #include <world.hpp>
 #include <vulkan/vulkan.h>
 #include <iostream>
@@ -78,9 +80,13 @@ public:
 
     Window* window  = nullptr;
     Shader* shader  = nullptr;
+    Camera* camera  = nullptr;
+    Mesh* mesh      = nullptr;
     World* world    = nullptr;
 
     const int MAX_FRAMES_IN_FLIGHT = 2;
+    
+    float getAspectRatio();
 
     void Set();
     void Create();
@@ -607,6 +613,7 @@ public:
      * Draw
      ******/
     void drawFrame() {
+        world->update(); 
         vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
         uint32_t imageIndex;

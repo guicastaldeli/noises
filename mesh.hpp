@@ -14,6 +14,7 @@
 #include <cstddef>
 
 class Main;
+class Camera;
 
 /***************
  * 
@@ -26,6 +27,7 @@ struct Vertex {
     float position[3];
     float normal[3];
     float uv[2];
+    float color[3];
 
     static VkVertexInputBindingDescription getBindingDescription() {
         VkVertexInputBindingDescription b{};
@@ -35,8 +37,8 @@ struct Vertex {
         return b;
     }
 
-    static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions() {
-        std::array<VkVertexInputAttributeDescription, 3> a{};
+    static std::array<VkVertexInputAttributeDescription, 4> getAttributeDescriptions() {
+        std::array<VkVertexInputAttributeDescription, 4> a{};
         
         // inPosition
         a[0].binding = 0;
@@ -55,6 +57,13 @@ struct Vertex {
         a[2].location = 2;
         a[2].format = VK_FORMAT_R32G32_SFLOAT;
         a[2].offset = offsetof(Vertex, uv);
+
+        // inColor
+        a[3].binding = 0;
+        a[3].location = 3;
+        a[3].format = VK_FORMAT_R32G32B32_SFLOAT;
+        a[3].offset = offsetof(Vertex, color);
+
         return a;
     }
 };
@@ -117,6 +126,7 @@ private:
     std::vector<void*> uniformBuffersMapped;
 
     Main& main;
+    Camera& camera;
 
     const Transform& getTransform(uint32_t id) const;
     const BufferData& getBufferData(const std::string& type) const;
@@ -167,52 +177,49 @@ private:
             });
             // Cube
             m.emplace("cube", MeshData{
-                // Vertices
-                {
-                    -0.5f, -0.5f,  0.5f,     0.0f, 0.0f, 1.0f,     0.0f, 0.0f,
-                     0.5f, -0.5f,  0.5f,     0.0f, 0.0f, 1.0f,     1.0f, 0.0f,
-                     0.5f,  0.5f,  0.5f,     0.0f, 0.0f, 1.0f,     1.0f, 1.0f,
-                    -0.5f,  0.5f,  0.5f,     0.0f, 0.0f, 1.0f,     0.0f, 1.0f,
-                    
-                     0.5f, -0.5f, -0.5f,     0.0f, 0.0f, -1.0f,    0.0f, 0.0f,
-                    -0.5f, -0.5f, -0.5f,     0.0f, 0.0f, -1.0f,    1.0f, 0.0f,
-                    -0.5f,  0.5f, -0.5f,     0.0f, 0.0f, -1.0f,    1.0f, 1.0f,
-                     0.5f,  0.5f, -0.5f,     0.0f, 0.0f, -1.0f,    0.0f, 1.0f,
-                    
-                    -0.5f,  0.5f,  0.5f,     0.0f, 1.0f, 0.0f,     0.0f, 0.0f,
-                     0.5f,  0.5f,  0.5f,     0.0f, 1.0f, 0.0f,     1.0f, 0.0f,
-                     0.5f,  0.5f, -0.5f,     0.0f, 1.0f, 0.0f,     1.0f, 1.0f,
-                    -0.5f,  0.5f, -0.5f,     0.0f, 1.0f, 0.0f,     0.0f, 1.0f,
-                    
-                    -0.5f, -0.5f, -0.5f,     0.0f, -1.0f, 0.0f,    0.0f, 0.0f,
-                     0.5f, -0.5f, -0.5f,     0.0f, -1.0f, 0.0f,    1.0f, 0.0f,
-                     0.5f, -0.5f,  0.5f,     0.0f, -1.0f, 0.0f,    1.0f, 1.0f,
-                    -0.5f, -0.5f,  0.5f,     0.0f, -1.0f, 0.0f,    0.0f, 1.0f,
-                    
-                     0.5f, -0.5f,  0.5f,     1.0f, 0.0f, 0.0f,     0.0f, 0.0f,
-                     0.5f, -0.5f, -0.5f,     1.0f, 0.0f, 0.0f,     1.0f, 0.0f,
-                     0.5f,  0.5f, -0.5f,     1.0f, 0.0f, 0.0f,     1.0f, 1.0f,
-                     0.5f,  0.5f,  0.5f,     1.0f, 0.0f, 0.0f,     0.0f, 1.0f,
-                    
-                    -0.5f, -0.5f, -0.5f,    -1.0f, 0.0f, 0.0f,     0.0f, 0.0f,
-                    -0.5f, -0.5f,  0.5f,    -1.0f, 0.0f, 0.0f,     1.0f, 0.0f,
-                    -0.5f,  0.5f,  0.5f,    -1.0f, 0.0f, 0.0f,     1.0f, 1.0f,
-                    -0.5f,  0.5f, -0.5f,    -1.0f, 0.0f, 0.0f,     0.0f, 1.0f
-                },
-                // Indices
-                {
-                    0, 1, 2, 0, 2, 3,
-                    4, 5, 6, 4, 6, 7,
-                    8, 9, 10, 8, 10, 11,
-                    12, 13, 14, 12, 14, 15,
-                    16, 17, 18, 16, 18, 19,
-                    20, 21, 22, 20, 22, 23
-                },
-                // Min Bounds
-                Vec3(-0.5f, -0.5f, -0.5f),
-                // Max Bounds
-                Vec3(0.5f, 0.5f, 0.5f)
-            });
+            //Vertices
+            {
+                -0.5f, -0.5f,  0.5f,   0,0,1,   0,0,   1,0,0,
+                0.5f, -0.5f,  0.5f,   0,0,1,   1,0,   1,0,0,
+                0.5f,  0.5f,  0.5f,   0,0,1,   1,1,   1,0,0,
+                -0.5f,  0.5f,  0.5f,   0,0,1,   0,1,   1,0,0,
+
+                0.5f, -0.5f, -0.5f,   0,0,-1,  0,0,   0,0,1,
+                -0.5f, -0.5f, -0.5f,   0,0,-1,  1,0,   0,0,1,
+                -0.5f,  0.5f, -0.5f,   0,0,-1,  1,1,   0,0,1,
+                0.5f,  0.5f, -0.5f,   0,0,-1,  0,1,   0,0,1,
+
+                -0.5f,  0.5f,  0.5f,   0,1,0,   0,0,   0,1,0,
+                0.5f,  0.5f,  0.5f,   0,1,0,   1,0,   0,1,0,
+                0.5f,  0.5f, -0.5f,   0,1,0,   1,1,   0,1,0,
+                -0.5f,  0.5f, -0.5f,   0,1,0,   0,1,   0,1,0,
+
+                -0.5f, -0.5f, -0.5f,   0,-1,0,  0,0,   1,1,0,
+                0.5f, -0.5f, -0.5f,   0,-1,0,  1,0,   1,1,0,
+                0.5f, -0.5f,  0.5f,   0,-1,0,  1,1,   1,1,0,
+                -0.5f, -0.5f,  0.5f,   0,-1,0,  0,1,   1,1,0,
+
+                0.5f, -0.5f,  0.5f,   1,0,0,   0,0,   0,1,1,
+                0.5f, -0.5f, -0.5f,   1,0,0,   1,0,   0,1,1,
+                0.5f,  0.5f, -0.5f,   1,0,0,   1,1,   0,1,1,
+                0.5f,  0.5f,  0.5f,   1,0,0,   0,1,   0,1,1,
+
+                -0.5f, -0.5f, -0.5f,  -1,0,0,   0,0,   1,0,1,
+                -0.5f, -0.5f,  0.5f,  -1,0,0,   1,0,   1,0,1,
+                -0.5f,  0.5f,  0.5f,  -1,0,0,   1,1,   1,0,1,
+                -0.5f,  0.5f, -0.5f,  -1,0,0,   0,1,   1,0,1,
+            },
+            // Indices
+            {
+                0,1,2, 0,2,3,  4,5,6, 4,6,7,
+                8,9,10, 8,10,11,  12,13,14, 12,14,15,
+                16,17,18, 16,18,19,  20,21,22, 20,22,23
+            },
+            // Min Bounds
+            Vec3(-0.5f, -0.5f, -0.5f),
+            // Max Bounds
+            Vec3(0.5f, 0.5f, 0.5f)
+        });
             return m;
         }();
         return map;
@@ -227,13 +234,14 @@ public:
      *******/
     struct UniformBuffer {
         Mat4 model;
-        Vec3 color;
+        Mat4 view;
+        Mat4 proj;
     };
     /**
      * 
      */
 
-    Mesh(Main& main);
+    Mesh(Main& main, Camera& camera);
     ~Mesh();
 
     void setPosition(uint32_t id, float x, float y, float z);

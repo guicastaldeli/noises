@@ -1,29 +1,35 @@
 #include <mesh.hpp>
 #include <cake.hpp>
+#include <camera.hpp>
 #include <cstring>
 
-Mesh::Mesh(Main& main) : main(main) {};
+Mesh::Mesh(Main& main, Camera& camera) : 
+    main(main),
+    camera(camera) {};
 Mesh::~Mesh() {};
 
 /**
  * Set Position
  */
 void Mesh::setPosition(uint32_t id, float x, float y, float z) {
-    transforms.at(id).position = Vec3(x, y, z);
+    auto& t = transforms[id];
+    t.position = Vec3(x, y, z);
 }
 
 /**
  * Set Rotation
  */
 void Mesh::setRotation(uint32_t id, float x, float y, float z) {
-    transforms.at(id).rotation = Vec3(x, y, z);
+    auto& t = transforms[id];
+    t.rotation = Vec3(x, y, z);
 }
 
 /**
  * Set Scale
  */
 void Mesh::setScale(uint32_t id, float x, float y, float z) {
-    transforms.at(id).scale = Vec3(x, y, z);
+    auto& t = transforms[id];
+    t.scale = Vec3(x, y, z);
 }
 
 /**
@@ -157,7 +163,8 @@ void Mesh::load(uint32_t id, const std::string& type) {
     Transform& t = transforms.at(id);
     UniformBuffer ubo{};
     ubo.model = t.GetModelMatrix();
-    ubo.color = t.color;
+    ubo.view = camera.getViewMatrix();
+    ubo.proj = camera.getProjectionMatrix();
 
     std::memcpy(uniformBuffersMapped[main.currentFrame], &ubo, sizeof(ubo));
 

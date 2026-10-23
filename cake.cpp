@@ -5,12 +5,23 @@
 Main::Main() {
     window  = new Window(*this);
     shader  = new Shader(*this);
-    world   = new World(*this);
+    camera  = new Camera(*this);
+    mesh    = new Mesh(*this, *camera);
+    world   = new World(*this, *mesh);
 }
 Main::~Main() {
     delete shader;  shader = nullptr;
     delete window;  window = nullptr;
+    delete mesh;    mesh = nullptr;
     delete world;   world = nullptr;
+}
+
+/**
+ * Get Aspect Ratio
+ */
+float Main::getAspectRatio() {
+    return (float)swapChainExtent.width / 
+            (float)swapChainExtent.height;
 }
 
 /**
@@ -18,6 +29,11 @@ Main::~Main() {
  */
 void Main::Set() {
     window->set();
+    mesh->set(device,
+                commandPool,
+                graphicsQueue,
+                physicalDevice,
+                MAX_FRAMES_IN_FLIGHT);
 }
 
 /**
@@ -25,7 +41,7 @@ void Main::Set() {
  */
 void Main::Update() {
     window->update();
-    world->update();
+    //world->update();
 }
 
 /**
@@ -161,7 +177,8 @@ void Main::SetInit() {
 }
 
 void Main::Init() {
-    world->set();
+    camera->init();
+    mesh->init();
     world->init();
 }
 
@@ -208,6 +225,7 @@ void Main::Cleanup() {
     if(renderPass != VK_NULL_HANDLE) vkDestroyRenderPass(device, renderPass, nullptr);
     
     shader->cleanup();
+    mesh->cleanup();
     world->cleanup();
 
     if(device != VK_NULL_HANDLE) vkDestroyDevice(device, nullptr);
