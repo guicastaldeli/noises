@@ -52,7 +52,7 @@ Vec3 Camera::getUp() const {
  */
 void Camera::setYawPitch() {
     const float limit = 1.55334f;
-    if(pitch < limit) pitch = limit;
+    if(pitch > limit) pitch = limit;
     if(pitch < -limit) pitch = -limit;
 
     set();
@@ -92,9 +92,12 @@ Mat4 Camera::getProjectionMatrix() {
 
     p.m[0][0] = f / main.getAspectRatio();
     p.m[1][1] = f;
-    p.m[2][2] = zFar / (zFar - zNear);
-    p.m[2][3] = 1.0f;
-    p.m[3][2] = -(zFar * zNear) / (zFar - zNear);
+
+    p.m[2][2] = zFar / (zNear - zFar);
+    p.m[2][3] = (zNear * zFar) / (zNear - zFar);
+
+    p.m[3][2] = -1.0f;
+    p.m[3][3] = 0.0f;
 
     return p;
 }
@@ -119,7 +122,7 @@ void Camera::set() {
     right.y = forward.z * worldUp.x - forward.x * worldUp.z;
     right.z = forward.x * worldUp.y - forward.y * worldUp.x;
 
-    int v = 1e6f;
+    int v = 1e-6f;
     float rl = std::sqrt(right.x*right.x + right.y*right.y + right.z*right.z);
     if(rl > v) { right.x /= rl; right.y /= rl; right.z /= rl; }
 

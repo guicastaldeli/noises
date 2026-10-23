@@ -36,7 +36,7 @@ void Mesh::setScale(uint32_t id, float x, float y, float z) {
  * Set Color
  */
 void Mesh::setColor(uint32_t id, float r, float g, float b) {
-    transforms.at(id).color = Vec3(r, g, b);
+    transforms[id].color = Vec3(r, g, b);
 }
 
 /**
@@ -162,9 +162,17 @@ void Mesh::load(uint32_t id, const std::string& type) {
 
     Transform& t = transforms.at(id);
     UniformBuffer ubo{};
-    ubo.model = t.GetModelMatrix();
-    ubo.view = camera.getViewMatrix();
-    ubo.proj = camera.getProjectionMatrix();
+    Mat4 model = t.GetModelMatrix();
+    Mat4 view = camera.getViewMatrix();
+    Mat4 proj = camera.getProjectionMatrix();
+
+    for(int r = 0; r < 4; ++r) {
+        for(int c = 0; c < 4; ++c) {
+            ubo.model.m[r][c] = model.m[c][r];
+            ubo.view.m[r][c] = view.m[c][r];
+            ubo.proj.m[r][c] = proj.m[c][r];
+        }
+    }
 
     std::memcpy(uniformBuffersMapped[main.currentFrame], &ubo, sizeof(ubo));
 

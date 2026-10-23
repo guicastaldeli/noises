@@ -12,8 +12,6 @@ public:
     World(Main& main, Mesh& mesh);
     ~World();
 
-    Mesh* getMesh() const;
-
     void set();
     void update();
     void render();

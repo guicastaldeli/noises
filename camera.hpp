@@ -20,18 +20,18 @@ public:
     Camera(Main& main);
     ~Camera();
 
-    float zNear = 1.0f;
+    float zNear = 0.1f;
     float zFar = 100.0f;
     float fov = 120.0f;
 
     float POS_X = 0.0f;
     float POS_Y = 0.0f;
-    float POS_Z = 0.0f;
+    float POS_Z = 2.0f;
 
     void setPosition();
     void setYawPitch();
 
-    static Mat4 getProjectionMatrix();
+    Mat4 getProjectionMatrix();
     Mat4 getViewMatrix() const;
     Vec3 getPosition() const;
     Vec3 getForward() const;

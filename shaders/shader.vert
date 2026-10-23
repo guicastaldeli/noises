@@ -19,7 +19,6 @@ void main() {
     vec4 projPos = ubo.proj * viewPos;
 
     gl_Position = projPos;
-    gl_Position.z = (gl_Position.z + 1.0) * 0.5;
 
     fragColor = inColor;
 }

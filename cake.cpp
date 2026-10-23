@@ -29,11 +29,6 @@ float Main::getAspectRatio() {
  */
 void Main::Set() {
     window->set();
-    mesh->set(device,
-                commandPool,
-                graphicsQueue,
-                physicalDevice,
-                MAX_FRAMES_IN_FLIGHT);
 }
 
 /**
@@ -49,7 +44,7 @@ void Main::Update() {
  */
 void Main::Create() {
     auto stageInfos = shader->getStageInfos();
-    VkPipelineVertexInputStateCreateInfo vertexInputInfo = world->getMesh()->getVertexInputState();
+    VkPipelineVertexInputStateCreateInfo vertexInputInfo = mesh->getVertexInputState();
 
     VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
     inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -99,7 +94,7 @@ void Main::Create() {
     dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
     dynamicState.pDynamicStates = dynamicStates.data();
 
-    VkDescriptorSetLayout dsLayout = world->getMesh()->getDescriptorSetLayout();
+    VkDescriptorSetLayout dsLayout = mesh->getDescriptorSetLayout();
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipelineLayoutInfo.setLayoutCount = 1;
@@ -178,6 +173,11 @@ void Main::SetInit() {
 
 void Main::Init() {
     camera->init();
+    mesh->set(device,
+                commandPool,
+                graphicsQueue,
+                physicalDevice,
+                MAX_FRAMES_IN_FLIGHT);
     mesh->init();
     world->init();
 }
