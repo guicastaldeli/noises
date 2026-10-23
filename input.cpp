@@ -1,6 +1,10 @@
 #include <input.hpp>
 
-Input::Input(Window& window) : window(window) {};
+Input::Input(Main& main, Window& window) : 
+    main(main),
+    window(window) {
+    setBindings();
+};
 Input::~Input() {};
 
 /********
@@ -141,7 +145,7 @@ void Input::onMouseButton(int button, int action) {
     if(action == GLFW_PRESS) {
         m_mouseDown.insert(button);
         m_mousePressed.insert(button);
-    } else if(action = GLFW_RELEASE) {
+    } else if(action == GLFW_RELEASE) {
         m_mouseDown.erase(button);
         m_mouseReleased.insert(button);
     }

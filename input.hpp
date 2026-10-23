@@ -1,6 +1,7 @@
 #pragma once
 
 #include <window.hpp>
+#include <cake.hpp>
 #include <GLFW/glfw3.h>
 #include <string>
 #include <unordered_map>
@@ -8,6 +9,7 @@
 
 class Input {
 private:
+    Main& main;
     Window& window;
 
     std::unordered_map<std::string, int> m_bindings;
@@ -35,7 +37,7 @@ public:
      * 
      *  ****/
     #define BINDING(name) \
-        static constexpr char* name = #name;
+        static constexpr const char* name = #name;
 
     struct Bindings {
         BINDING(FORWARD)
@@ -63,7 +65,7 @@ public:
      * 
      */
 
-    Input(Window& window);
+    Input(Main& main, Window& window);
     ~Input();
 
     bool down(const std::string& action) const;
@@ -85,10 +87,42 @@ public:
     void onKey(int key, int action);
     void onMouseButton(int button, int action);
     void onCursorPos(double x, double y);
-    void onScroll(double xoffset, double yoffset);
 
     void setCursorCaptured(bool captured);
     bool isCursorCaptured() const;
+
+    /********** 
+     * Key Callback
+     ******/
+    static void keyCallback(GLFWwindow* w, int key, int /*sc*/, int action, int /*mods*/) {
+        auto* self = static_cast<Main*>(glfwGetWindowUserPointer(w));
+        self->input->onKey(key, action);
+    }
+
+    /********** 
+     * Mouse Button Callback
+     ******/
+    static void mouseButtonCallback(GLFWwindow* w, int button, int action, int /*mods*/) {
+        auto* self = static_cast<Main*>(glfwGetWindowUserPointer(w));
+        self->input->onMouseButton(button, action);
+    }
+
+    /********** 
+     * Cursor Pos Callback
+     ******/
+    static void cursorPosCallback(GLFWwindow* w, double x, double y) {
+        auto* self = static_cast<Main*>(glfwGetWindowUserPointer(w));
+        self->input->onCursorPos(x, y);
+    }
+
+    /********** 
+     * Set Callbacks
+     ******/
+    void setCallbacks() {
+        glfwSetKeyCallback(window.window,           keyCallback);
+        glfwSetMouseButtonCallback(window.window,   mouseButtonCallback);
+        glfwSetCursorPosCallback(window.window,     cursorPosCallback);
+    }
 
     /********** 
      * Begin Frame
@@ -106,6 +140,6 @@ public:
     void endFrame() {
         m_mouseDX = m_rawDX;
         m_mouseDY = m_rawDY;
-        m_rawDX = m_rawDX = 0.0f;
+        m_rawDX = m_rawDY = 0.0f;
     }
 };

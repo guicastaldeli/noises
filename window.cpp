@@ -85,6 +85,7 @@ void Window::init() {
 
     glfwSetWindowUserPointer(window, &main);
     glfwSetFramebufferSizeCallback(window, framebufferResizeCallback<Main>);
+    main.getInput()->setCallbacks();
 }
 
 /**

@@ -100,6 +100,7 @@ public:
     const int MAX_FRAMES_IN_FLIGHT = 2;
     
     float getAspectRatio();
+    Input* getInput();
 
     void Set();
     void Create();

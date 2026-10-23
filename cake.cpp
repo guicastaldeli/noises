@@ -16,13 +16,14 @@ Main::Main() {
     tick    = new Tick();
     shader  = new Shader(*this);
     camera  = new Camera(*this, *tick);
-    input   = new Input(*window);
+    input   = new Input(*this, *window);
     mesh    = new Mesh(*this, *camera);
     world   = new World(*tick, *mesh);
 }
 Main::~Main() {
     delete world;   world = nullptr;
     delete mesh;    mesh = nullptr;
+    delete input;   input = nullptr;
     delete camera;  camera = nullptr;
     delete shader;  shader = nullptr;
     delete tick;    tick = nullptr;
@@ -38,6 +39,13 @@ float Main::getAspectRatio() {
 }
 
 /**
+ * Get Input
+ */
+Input* Main::getInput() {
+    return input;
+}
+
+/**
  * Set
  */
 void Main::Set() {
@@ -49,11 +57,14 @@ void Main::Set() {
  */
 void Main::Update() {
     while(!window->shouldClose()) {
+        input->beginFrame();
         tick->Update();
         window->update();
+        camera->update();
         world->update();
         mesh->beginFrame();
         drawFrame();
+        input->endFrame();
     }
 
     vkDeviceWaitIdle(device);

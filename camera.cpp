@@ -145,19 +145,20 @@ void Camera::set() {
 void Camera::move() {
     Vec3 move(0.0f, 0.0f, 0.0f);
     float f = 1.0f;
-    if(input->down(Bindings::FORWARD))   move = move + forward;
-    if(input->down(Bindings::BACKWARD))  move = move - forward;
-    if(input->down(Bindings::RIGHT))     move = move + right;
-    if(input->down(Bindings::LEFT))      move = move - right;
-    if(input->down(Bindings::UP))        move.y += f;
-    if(input->down(Bindings::DOWN))      move.y -= f;
+    if(input->down(Input::Bindings::FORWARD))   move = move + forward;
+    if(input->down(Input::Bindings::BACKWARD))  move = move - forward;
+    if(input->down(Input::Bindings::RIGHT))     move = move + right;
+    if(input->down(Input::Bindings::LEFT))      move = move - right;
+    if(input->down(Input::Bindings::UP))        move.y += f;
+    if(input->down(Input::Bindings::DOWN))      move.y -= f;
 
     float len = std::sqrt(move.x*move.x + move.y*move.y + move.z*move.z);
     int v = 1e-6f;
     if(len > v) {
         move.x /= len; move.y /= len; move.z /= len;
         float speed = MOVE_SPEED;
-        position = position + move * (speed * tick.GetDeltaTime());
+        float dt = tick.GetDeltaTime() * 0.001f;
+        position = position + move * (speed * dt);
     }
 }
 
@@ -169,7 +170,7 @@ void Camera::move() {
 void Camera::update() {
     if(input->isCursorCaptured()) {
         yaw += static_cast<float>(input->mouseDeltaX()) * MOUSE_SENSV;
-        pitch += static_cast<float>(input->mouseDeltaX()) * MOUSE_SENSV;
+        pitch -= static_cast<float>(input->mouseDeltaX()) * MOUSE_SENSV;
 
         const float limit = 1.55334f;
         if(pitch > limit) pitch = limit;
