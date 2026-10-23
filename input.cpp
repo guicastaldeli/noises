@@ -1,4 +1,5 @@
 #include <input.hpp>
+#include <cake.hpp>
 
 Input::Input(Main& main, Window& window) : 
     main(main),
@@ -185,4 +186,13 @@ void Input::setCursorCaptured(bool captured) {
  */
 bool Input::isCursorCaptured() const {
     return m_cursorCaptured;
+}
+
+/**
+ * Set Callbacks
+ */
+void Input::setCallbacks() {
+    glfwSetKeyCallback(window.window, &Input::keyCallback<Main>);
+    glfwSetMouseButtonCallback(window.window, &Input::mouseButtonCallback<Main>);
+    glfwSetCursorPosCallback(window.window, &Input::cursorPosCallback<Main>);
 }

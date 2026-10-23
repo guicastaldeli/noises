@@ -5,6 +5,7 @@
 #include <tick.hpp>
 
 class Main;
+class Input;
 class Camera {
 private:
     Main& main;

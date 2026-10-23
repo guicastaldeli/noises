@@ -1,7 +1,6 @@
 #pragma once
 
 #include <window.hpp>
-#include <cake.hpp>
 #include <GLFW/glfw3.h>
 #include <string>
 #include <unordered_map>
@@ -91,37 +90,33 @@ public:
     void setCursorCaptured(bool captured);
     bool isCursorCaptured() const;
 
+    void setCallbacks();
+
     /********** 
      * Key Callback
      ******/
+    template<typename M>
     static void keyCallback(GLFWwindow* w, int key, int /*sc*/, int action, int /*mods*/) {
-        auto* self = static_cast<Main*>(glfwGetWindowUserPointer(w));
+        auto* self = static_cast<M*>(glfwGetWindowUserPointer(w));
         self->input->onKey(key, action);
     }
 
     /********** 
      * Mouse Button Callback
      ******/
+    template<typename M>
     static void mouseButtonCallback(GLFWwindow* w, int button, int action, int /*mods*/) {
-        auto* self = static_cast<Main*>(glfwGetWindowUserPointer(w));
+        auto* self = static_cast<M*>(glfwGetWindowUserPointer(w));
         self->input->onMouseButton(button, action);
     }
 
     /********** 
      * Cursor Pos Callback
      ******/
+    template<typename M>
     static void cursorPosCallback(GLFWwindow* w, double x, double y) {
-        auto* self = static_cast<Main*>(glfwGetWindowUserPointer(w));
+        auto* self = static_cast<M*>(glfwGetWindowUserPointer(w));
         self->input->onCursorPos(x, y);
-    }
-
-    /********** 
-     * Set Callbacks
-     ******/
-    void setCallbacks() {
-        glfwSetKeyCallback(window.window,           keyCallback);
-        glfwSetMouseButtonCallback(window.window,   mouseButtonCallback);
-        glfwSetCursorPosCallback(window.window,     cursorPosCallback);
     }
 
     /********** 
