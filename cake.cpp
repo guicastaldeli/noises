@@ -1,6 +1,7 @@
 #include <cake.hpp>
 #include <iostream>
 #include <window.hpp>
+#include <array>
 
 Main::Main() {
     window  = new Window(*this);
@@ -62,7 +63,7 @@ void Main::Create() {
     rasterizer.rasterizerDiscardEnable = VK_FALSE;
     rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
     rasterizer.lineWidth = 1.0f;
-    rasterizer.cullMode = VK_CULL_MODE_NONE;//rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
+    rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
     rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
     rasterizer.depthBiasClamp = VK_FALSE;
 
@@ -70,6 +71,14 @@ void Main::Create() {
     multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     multisampling.sampleShadingEnable = VK_FALSE;
     multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+
+    VkPipelineDepthStencilStateCreateInfo depthStencil{};
+    depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+    depthStencil.depthTestEnable = VK_TRUE;
+    depthStencil.depthWriteEnable = VK_TRUE;
+    depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
+    depthStencil.depthBoundsTestEnable = VK_FALSE;
+    depthStencil.stencilTestEnable = VK_FALSE;
 
     VkPipelineColorBlendAttachmentState colorBlendAttachment{};
     colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT |
@@ -113,6 +122,7 @@ void Main::Create() {
     pipelineInfo.pViewportState = &viewportState;
     pipelineInfo.pRasterizationState = &rasterizer;
     pipelineInfo.pMultisampleState = &multisampling;
+    pipelineInfo.pDepthStencilState = &depthStencil;
     pipelineInfo.pColorBlendState = &colorBlending;
     pipelineInfo.pDynamicState = &dynamicState;
     pipelineInfo.layout = pipelineLayout;
@@ -141,9 +151,12 @@ void Main::SetRenderPass(VkCommandBuffer cmd, uint32_t imageIndex) {
     rp.renderArea.offset = {0, 0};
     rp.renderArea.extent = swapChainExtent;
 
-    VkClearValue clear = {{{0.5, 0.5, 0.5, 1.0f}}};
-    rp.clearValueCount = 1;
-    rp.pClearValues = &clear;
+    std::array<VkClearValue, 2> clearValues{};
+    clearValues[0].color            = {{0.3f, 0.3f, 0.3f, 1.0}};
+    clearValues[1].depthStencil     = {1.0f, 0};
+
+    rp.clearValueCount = static_cast<uint32_t>(clearValues.size());
+    rp.pClearValues = clearValues.data();
 
     vkCmdBeginRenderPass(cmd, &rp, VK_SUBPASS_CONTENTS_INLINE);
         vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);

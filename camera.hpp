@@ -25,7 +25,7 @@ public:
     float fov = 120.0f;
 
     float POS_X = 0.0f;
-    float POS_Y = 0.0f;
+    float POS_Y = 1.0f;
     float POS_Z = 2.0f;
 
     void setPosition();
