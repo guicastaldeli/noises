@@ -215,8 +215,7 @@ void Main::SetInit() {
 }
 
 void Main::Init() {
-    camera->setInput(input);
-    camera->init();
+    camera->init(input);
     mesh->set(device,
                 commandPool,
                 graphicsQueue,

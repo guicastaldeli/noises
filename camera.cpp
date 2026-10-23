@@ -170,7 +170,7 @@ void Camera::move() {
 void Camera::update() {
     if(input->isCursorCaptured()) {
         yaw += static_cast<float>(input->mouseDeltaX()) * MOUSE_SENSV;
-        pitch -= static_cast<float>(input->mouseDeltaX()) * MOUSE_SENSV;
+        pitch -= static_cast<float>(input->mouseDeltaY()) * MOUSE_SENSV;
 
         const float limit = 1.55334f;
         if(pitch > limit) pitch = limit;
@@ -186,7 +186,9 @@ void Camera::update() {
  * Init
  * 
  */
-void Camera::init() {
+void Camera::init(Input* input) {
+    this->input->setCursorCaptured(true);
+    setInput(input);
     set();
     setPosition();
 }

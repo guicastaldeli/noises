@@ -48,7 +48,7 @@ public:
     Vec3 getUp() const;
 
     void set();
-    void init();
+    void init(Input* input);
     void move();
     void update();
 };
