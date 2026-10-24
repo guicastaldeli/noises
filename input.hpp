@@ -45,6 +45,7 @@ public:
         BINDING(RIGHT)
         BINDING(UP)
         BINDING(DOWN)
+        BINDING(CAPTURE)
     };
 
     #undef BINDING
@@ -91,6 +92,8 @@ public:
     bool isCursorCaptured() const;
 
     void setCallbacks();
+    
+    void update();
 
     /********** 
      * Key Callback

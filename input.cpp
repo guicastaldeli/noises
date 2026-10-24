@@ -118,6 +118,7 @@ void Input::setBindings() {
     bind(Bindings::RIGHT,       GLFW_KEY_D);
     bind(Bindings::UP,          GLFW_KEY_SPACE);
     bind(Bindings::DOWN,        GLFW_KEY_LEFT_CONTROL);
+    bind(Bindings::CAPTURE,     GLFW_KEY_ESCAPE);
 }
 
 /**
@@ -195,4 +196,22 @@ void Input::setCallbacks() {
     glfwSetKeyCallback(window.window, &Input::keyCallback<Main>);
     glfwSetMouseButtonCallback(window.window, &Input::mouseButtonCallback<Main>);
     glfwSetCursorPosCallback(window.window, &Input::cursorPosCallback<Main>);
+}
+
+/**
+ * 
+ * Update
+ * 
+ */
+void Input::update() {
+    if(m_cursorCaptured) {
+        if(pressed(Bindings::CAPTURE)) {
+            setCursorCaptured(false);
+        }
+    } else {
+        if(pressedMouse(GLFW_MOUSE_BUTTON_LEFT)) {
+            m_mousePressed.erase(GLFW_MOUSE_BUTTON_LEFT);
+            setCursorCaptured(true);
+        }
+    }
 }

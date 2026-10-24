@@ -60,6 +60,7 @@ void Main::Update() {
         input->beginFrame();
         tick->Update();
         window->update();
+        input->update();
         camera->update();
         world->update();
         mesh->beginFrame();
