@@ -117,7 +117,7 @@ void Input::setBindings() {
     bind(Bindings::LEFT,        GLFW_KEY_A);
     bind(Bindings::RIGHT,       GLFW_KEY_D);
     bind(Bindings::UP,          GLFW_KEY_SPACE);
-    bind(Bindings::DOWN,        GLFW_KEY_LEFT_CONTROL);
+    bind(Bindings::DOWN,        GLFW_KEY_LEFT_SHIFT);
     bind(Bindings::CAPTURE,     GLFW_KEY_ESCAPE);
 }
 
