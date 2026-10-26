@@ -15,7 +15,7 @@ Input::~Input() {};
  */
 // Down
 bool Input::down(const std::string& a) const {
-    return m_actionsDown.count(norm(a)) > 0;
+    return m_actionsDown.count(Norm::C(a)) > 0;
 }
 
 bool Input::downMouse(int b) const {
@@ -24,7 +24,7 @@ bool Input::downMouse(int b) const {
 
 // Pressed
 bool Input::pressed(const std::string& a) const {
-    return m_actionsPressed.count(norm(a)) > 0;
+    return m_actionsPressed.count(Norm::C(a)) > 0;
 }
 
 bool Input::pressedMouse(int b) const {
@@ -33,7 +33,7 @@ bool Input::pressedMouse(int b) const {
 
 // Released
 bool Input::released(const std::string& a) const {
-    return m_actionsReleased.count(norm(a)) > 0;
+    return m_actionsReleased.count(Norm::C(a)) > 0;
 }
 
 bool Input::releasedMouse(int b) const {
@@ -71,7 +71,7 @@ double Input::mouseDeltaY() const {
  * Bind
  */
 void Input::bind(const std::string& action, int key) {
-    const std::string k = norm(action);
+    const std::string k = Norm::C(action);
 
     auto old = m_bindings.find(k);
     if (old != m_bindings.end()) {
@@ -88,7 +88,7 @@ void Input::bind(const std::string& action, int key) {
  * Unbind
  */
 void Input::unbind(const std::string& action) {
-    const std::string key = norm(action);
+    const std::string key = Norm::C(action);
     auto it = m_bindings.find(key);
     if(it == m_bindings.end()) return;
 
@@ -102,7 +102,7 @@ void Input::unbind(const std::string& action) {
  * Key For
  */
 int Input::keyFor(const std::string& action) const {
-    auto it = m_bindings.find(norm(action));
+    auto it = m_bindings.find(Norm::C(action));
     return it == m_bindings.end() ? GLFW_KEY_UNKNOWN : it->second;
 }
 
@@ -177,7 +177,9 @@ void Input::setCursorCaptured(bool captured) {
     if(window.window) {
         glfwSetInputMode(window.window,
                             GLFW_CURSOR,
-                            captured ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+                            captured ? 
+                                GLFW_CURSOR_DISABLED : 
+                                GLFW_CURSOR_NORMAL);
     }
     if(captured) m_firstMouseSample = true;
 }

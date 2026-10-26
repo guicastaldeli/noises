@@ -1,8 +1,9 @@
 #pragma once
 
 #include <window.hpp>
-#include <GLFW/glfw3.h>
 #include <string>
+#include <utils/norm.hpp>
+#include <GLFW/glfw3.h>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -51,16 +52,6 @@ public:
     #undef BINDING
 
     void setBindings();
-
-    static std::string norm(const std::string& s) {
-        std::string out;
-        out.reserve(s.size());
-        for(char c : s) {
-            if(c >= 'A' && c <= 'Z') out.push_back(char(c - 'A' + 'a'));
-            else out.push_back(c);
-        }
-        return out;
-    }
     /**
      * 
      */

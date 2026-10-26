@@ -32,7 +32,7 @@ public:
     float POS_Y = 1.0f;
     float POS_Z = 6.0f;
 
-    float MOVE_SPEED = 3.0f;
+    float MOVE_SPEED = 10.0f;
     float MOUSE_SENSV = 0.0025f;
 
     void setInput(Input* input); 
