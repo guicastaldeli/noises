@@ -104,10 +104,17 @@ struct NoiseParams {
     float maxHeight = 64.0f;
 };
 
-// One sample of noise at (x, z)
-float sampleNoise(const NoiseParams& p, float x, float y, float z);
-
-// One sample at 2D coords
-inline float sampleNoise2(const NoiseParams& p, float x, float z) {
-    return sampleNoise(p, x, 0.0f, z);
-}
+/********* 
+ * 
+ * Noise methods.
+ * 
+ * *****/
+class Noise {
+    // One sample of noise at (x, z)
+    static float sampleNoise(const NoiseParams& p, float x, float y, float z);
+    
+    // One sample at 2D coords
+    inline static float sampleNoise2(const NoiseParams& p, float x, float z) {
+        return sampleNoise(p, x, 0.0f, z);
+    }
+};
