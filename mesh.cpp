@@ -136,9 +136,9 @@ void Mesh::createBuffer(
 }
 
 /**
- * Set
+ * Set Init
  */
-void Mesh::set(VkDevice device,
+void Mesh::setInit(VkDevice device,
             VkCommandPool commandPool,
             VkQueue graphicsQueue,
             VkPhysicalDevice physicalDevice,

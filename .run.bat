@@ -7,7 +7,7 @@ set "BUILD_FROM_RUN=1"
 
 echo [run] Building...
 call "%BUILD_DIR%\build.bat"
-if errorlevel 1 (
+if not %errorlevel% == 0 (
     echo ERROR: Build failed, aborting run.
     pause
     exit /b 1
@@ -28,7 +28,8 @@ if not exist noises.exe (
 echo.
 echo Running...
 noises.exe %*
+set "EXITCODE=%errorlevel%"
 echo.
-echo Exited with code %errorlevel%.
+echo Exited with code %EXITCODE%.
 pause
 endlocal

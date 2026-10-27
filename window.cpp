@@ -69,10 +69,10 @@ bool Window::shouldClose() const {
 
 /**
  * 
- * Init
+ * Config
  * 
  */
-void Window::init() {
+void Window::config() {
     glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);

@@ -16,6 +16,7 @@
 #include <input.hpp>
 #include <mesh.hpp>
 #include <terrain.hpp>
+#include <ui.hpp>
 #include <vulkan/vulkan.h>
 #include <iostream>
 #include <vector>
@@ -89,13 +90,14 @@ public:
     std::vector<VkFence> inFlightFences;
     bool framebufferResized = false;
 
-    Window* window  = nullptr;
-    Tick* tick      = nullptr;
-    Shader* shader  = nullptr;
-    Camera* camera  = nullptr;
-    Input* input    = nullptr;
-    Mesh* mesh      = nullptr;
+    Window* window      = nullptr;
+    Tick* tick          = nullptr;
+    Shader* shader      = nullptr;
+    Camera* camera      = nullptr;
+    Input* input        = nullptr;
+    Mesh* mesh          = nullptr;
     Terrain* terrain    = nullptr;
+    UI* ui              = nullptr;
 
     const int MAX_FRAMES_IN_FLIGHT = 2;
     
@@ -105,14 +107,39 @@ public:
     void Set();
     void Create();
     void Update();
-    void SetInit();
+    void Config();
     void Init();
 
     void SetRenderPass(VkCommandBuffer cmd, uint32_t imageIndex);
-    void Render();
+    void Render(VkCommandBuffer commandBuffer);
     void Run();
 
     void Cleanup();
+
+    /***************
+     * Pool
+     */
+    inline static VkDescriptorPoolSize poolSizes[] = {
+        { VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
+        { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
+        { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 },
+        { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 },
+        { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000 },
+        { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000 },
+        { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 },
+        { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 },
+        { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 },
+        { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 },
+        { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 }
+    };
+
+    inline static constexpr uint32_t poolSizesCount = static_cast<uint32_t>(
+        sizeof(poolSizes) / 
+        sizeof(poolSizes[0])
+    );
+    /**
+     * 
+     */
 
     /*******
      * Physical Device

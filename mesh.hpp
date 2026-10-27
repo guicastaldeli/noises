@@ -276,7 +276,7 @@ public:
     void setScale(uint32_t id, float x, float y, float z);
     void setColor(uint32_t id, float r, float g, float b);
 
-    void set(VkDevice device,
+    void setInit(VkDevice device,
             VkCommandPool commandPool,
             VkQueue graphicsQueue,
             VkPhysicalDevice physicalDevice,

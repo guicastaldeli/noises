@@ -12,22 +12,24 @@
 #include <array>
 
 Main::Main() {
-    window  = new Window(*this);
-    tick    = new Tick();
-    shader  = new Shader(*this);
-    camera  = new Camera(*this, *tick);
-    input   = new Input(*this, *window);
-    mesh    = new Mesh(*this, *camera);
-    terrain   = new Terrain(*tick, *mesh);
+    window      = new Window(*this);
+    tick        = new Tick();
+    shader      = new Shader(*this);
+    camera      = new Camera(*this, *tick);
+    input       = new Input(*this, *window);
+    mesh        = new Mesh(*this, *camera);
+    terrain     = new Terrain(*tick, *mesh);
+    ui          = new UI(*this, *window);
 }
 Main::~Main() {
-    delete terrain;   terrain = nullptr;
-    delete mesh;    mesh = nullptr;
-    delete input;   input = nullptr;
-    delete camera;  camera = nullptr;
-    delete shader;  shader = nullptr;
-    delete tick;    tick = nullptr;
-    delete window;  window = nullptr;
+    delete ui;          ui = nullptr;
+    delete terrain;     terrain = nullptr;
+    delete mesh;        mesh = nullptr;
+    delete input;       input = nullptr;
+    delete camera;      camera = nullptr;
+    delete shader;      shader = nullptr;
+    delete tick;        tick = nullptr;
+    delete window;      window = nullptr;
 }
 
 /**
@@ -169,9 +171,10 @@ void Main::Create() {
  * Render
  * 
  */
-void Main::Render() {
+void Main::Render(VkCommandBuffer commandPass) {
     terrain->render();
     mesh->render();
+    ui->R(commandPass);
 }
 
 void Main::SetRenderPass(VkCommandBuffer cmd, uint32_t imageIndex) {
@@ -202,8 +205,15 @@ void Main::SetRenderPass(VkCommandBuffer cmd, uint32_t imageIndex) {
         sc.extent = swapChainExtent;
         vkCmdSetScissor(cmd, 0, 1, &sc);
 
-        Render();
+        Render(cmd);
     vkCmdEndRenderPass(cmd);
+}
+
+/**
+ * Config
+ */
+void Main::Config() {
+    window->config();
 }
 
 /**
@@ -211,19 +221,12 @@ void Main::SetRenderPass(VkCommandBuffer cmd, uint32_t imageIndex) {
  * Init
  * 
  */
-void Main::SetInit() {
-    window->init();
-}
-
 void Main::Init() {
     camera->init(input);
-    mesh->set(device,
-                commandPool,
-                graphicsQueue,
-                physicalDevice,
-                MAX_FRAMES_IN_FLIGHT);
+    mesh->setInit(device, commandPool, graphicsQueue, physicalDevice, MAX_FRAMES_IN_FLIGHT);
     mesh->init();
     terrain->init();
+    ui->I<Main>();
 }
 
 /**
@@ -232,7 +235,7 @@ void Main::Init() {
  * 
  */
 void Main::Run() {
-    SetInit();
+    Config();
     Set();
 
     RunPipeline();
@@ -271,6 +274,7 @@ void Main::Cleanup() {
     shader->cleanup();
     mesh->cleanup();
     terrain->cleanup();
+    ui->C<Main>();
 
     if(device != VK_NULL_HANDLE) vkDestroyDevice(device, nullptr);
     if(window->surface != VK_NULL_HANDLE) vkDestroySurfaceKHR(instance, window->surface, nullptr);
