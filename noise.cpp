@@ -203,6 +203,11 @@ float fractal2(float x, float z, const NoiseParams& p,
 
 }
 
+/**********
+ * 
+ * Sample Noise
+ * 
+ */
 float Noise::sampleNoise(const NoiseParams& p, float x, float y, float z) {
     const float f = p.frequency;
     switch(p.type) {
