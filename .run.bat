@@ -19,15 +19,15 @@ cd /d "%BUILD_DIR%" || (
     exit /b 1
 )
 
-if not exist perlins.exe (
-    echo ERROR: perlins.exe not found after build.
+if not exist noises.exe (
+    echo ERROR: noises.exe not found after build.
     pause
     exit /b 1
 )
 
 echo.
 echo Running...
-perlins.exe %*
+noises.exe %*
 echo.
 echo Exited with code %errorlevel%.
 pause

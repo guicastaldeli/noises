@@ -3,7 +3,7 @@ setlocal EnableDelayedExpansion
 
 set "ROOT_DIR=%~dp0.."
 set "BUILD_DIR=%ROOT_DIR%\.build"
-set "OUT_EXE=%BUILD_DIR%\perlins.exe"
+set "OUT_EXE=%BUILD_DIR%\noises.exe"
 set "GLFW_INCLUDE=C:\Users\casta\OneDrive\Desktop\glfw-3.4\include"
 set "GLFW_LIB_DIR=C:\Users\casta\OneDrive\Desktop\glfw-3.4\src"
 
@@ -72,7 +72,7 @@ if errorlevel 1 (
     exit /b 1
 )
 
-echo Building perlins...
+echo Building noises...
 echo =====================================================
 echo   ROOT_DIR   = %ROOT_DIR%
 echo   BUILD_DIR  = %BUILD_DIR%
