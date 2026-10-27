@@ -125,10 +125,10 @@ void Camera::set() {
     forward.y = sp;
     forward.z = -cy * cp;
 
-    Vec3 worldUp = Vec3(0.0f, 1.0f, 0.0f);
-    right.x = forward.x * worldUp.z - forward.z * worldUp.y;
-    right.y = forward.z * worldUp.x - forward.x * worldUp.z;
-    right.z = forward.x * worldUp.y - forward.y * worldUp.x;
+    Vec3 terrainUp = Vec3(0.0f, 1.0f, 0.0f);
+    right.x = forward.x * terrainUp.z - forward.z * terrainUp.y;
+    right.y = forward.z * terrainUp.x - forward.x * terrainUp.z;
+    right.z = forward.x * terrainUp.y - forward.y * terrainUp.x;
 
     int v = 1e-6f;
     float rl = std::sqrt(right.x*right.x + right.y*right.y + right.z*right.z);

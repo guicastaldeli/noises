@@ -15,7 +15,7 @@ layout(location = 4) in mat4 instanceModel;
 layout(location = 0) out vec3 fragColor;
 
 void main() {
-    vec4 worldPos = instanceModel * vec4(inPosition, 1.0);
-    gl_Position = ubo.proj * ubo.view * worldPos;
+    vec4 terrainPos = instanceModel * vec4(inPosition, 1.0);
+    gl_Position = ubo.proj * ubo.view * terrainPos;
     fragColor = inColor;
 }

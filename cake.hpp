@@ -15,7 +15,7 @@
 #include <camera.hpp>
 #include <input.hpp>
 #include <mesh.hpp>
-#include <world.hpp>
+#include <terrain.hpp>
 #include <vulkan/vulkan.h>
 #include <iostream>
 #include <vector>
@@ -95,7 +95,7 @@ public:
     Camera* camera  = nullptr;
     Input* input    = nullptr;
     Mesh* mesh      = nullptr;
-    World* world    = nullptr;
+    Terrain* terrain    = nullptr;
 
     const int MAX_FRAMES_IN_FLIGHT = 2;
     

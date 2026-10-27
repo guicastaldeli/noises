@@ -1,22 +1,22 @@
-#include <world.hpp>
+#include <terrain.hpp>
 #include <iostream>
 
-World::World(Tick& tick, Mesh& mesh) : 
+Terrain::Terrain(Tick& tick, Mesh& mesh) : 
     tick(tick),
     mesh(mesh) {}
-World::~World() {};
+Terrain::~Terrain() {};
 
 /**
  * Set
  */
-void World::set() {
+void Terrain::set() {
     
 }
 
 /**
  * Update
  */
-void World::update() {
+void Terrain::update() {
     //if(tick.ShouldTick()) std::cout << "Draw calls: " << mesh.getDrawCalls() << std::endl;
     float deltaTime = tick.GetDeltaTime() * 0.001f;
     mesh.setRotation(0, 0.0f, deltaTime, 0.0f);
@@ -29,7 +29,7 @@ void World::update() {
  * Render
  * 
  */
-void World::render() {
+void Terrain::render() {
     for(int i = 0; i < 10; i++) {
         mesh.setPosition(i, i * -1.5f, 0.0f, 0.0f);
         mesh.load(i, "cube");
@@ -41,13 +41,13 @@ void World::render() {
  * Init
  * 
  */
-void World::init() {
+void Terrain::init() {
     
 }
 
 /**
  * Cleanup
  */
-void World::cleanup() {
+void Terrain::cleanup() {
     
 }

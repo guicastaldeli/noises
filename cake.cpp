@@ -18,10 +18,10 @@ Main::Main() {
     camera  = new Camera(*this, *tick);
     input   = new Input(*this, *window);
     mesh    = new Mesh(*this, *camera);
-    world   = new World(*tick, *mesh);
+    terrain   = new Terrain(*tick, *mesh);
 }
 Main::~Main() {
-    delete world;   world = nullptr;
+    delete terrain;   terrain = nullptr;
     delete mesh;    mesh = nullptr;
     delete input;   input = nullptr;
     delete camera;  camera = nullptr;
@@ -62,7 +62,7 @@ void Main::Update() {
         window->update();
         input->update();
         camera->update();
-        world->update();
+        terrain->update();
         mesh->beginFrame();
         drawFrame();
         input->endFrame();
@@ -170,7 +170,7 @@ void Main::Create() {
  * 
  */
 void Main::Render() {
-    world->render();
+    terrain->render();
     mesh->render();
 }
 
@@ -223,7 +223,7 @@ void Main::Init() {
                 physicalDevice,
                 MAX_FRAMES_IN_FLIGHT);
     mesh->init();
-    world->init();
+    terrain->init();
 }
 
 /**
@@ -270,7 +270,7 @@ void Main::Cleanup() {
     
     shader->cleanup();
     mesh->cleanup();
-    world->cleanup();
+    terrain->cleanup();
 
     if(device != VK_NULL_HANDLE) vkDestroyDevice(device, nullptr);
     if(window->surface != VK_NULL_HANDLE) vkDestroySurfaceKHR(instance, window->surface, nullptr);

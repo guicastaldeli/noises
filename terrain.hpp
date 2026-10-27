@@ -3,14 +3,14 @@
 #include <tick.hpp>
 #include <mesh.hpp>
 
-class World {
+class Terrain {
 private:
     Tick& tick;
     Mesh& mesh;
 
 public:
-    World(Tick& tick, Mesh& mesh);
-    ~World();
+    Terrain(Tick& tick, Mesh& mesh);
+    ~Terrain();
 
     void set();
     void update();
