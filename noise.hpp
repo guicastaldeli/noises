@@ -110,6 +110,7 @@ struct NoiseParams {
  * 
  * *****/
 class Noise {
+public:
     // One sample of noise at (x, z)
     static float sampleNoise(const NoiseParams& p, float x, float y, float z);
     

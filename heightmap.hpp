@@ -21,3 +21,7 @@ public:
     float& at(int x, int z) { return m_data[std::size_t(x) + std::size_t(z) * std::size_t(m_sx)]; }
     float clear() { m_sx = m_sz = 0; m_data.clear(); }
 };
+
+// Generates a heightmap of size (sx, sz)
+// range [params.minHeight, params.maxHeight]
+Heightmap generateHeightmap(int sx, int sz, const NoiseParams& params);
