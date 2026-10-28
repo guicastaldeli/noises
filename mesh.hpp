@@ -96,6 +96,8 @@ private:
         VkBuffer indexBuffer;
         VkDeviceMemory indexBufferMemory;
         uint32_t indexCount;
+        Vec3 minBounds{ 0,0,0 };
+        Vec3 maxBounds{ 0,0,0 };
     };
     /**
      *
@@ -138,6 +140,22 @@ private:
         Mat4 model;
         std::string type;
     };
+    /**
+     * 
+     */
+
+    /*******
+     * 
+     * Bounds
+     * 
+     */
+    struct Bounds {
+        Vec3 min, max;
+        Vec3 center() const { return { (min.x+max.x), (min.y+max.y), (min.z+max.z) }; }
+        Vec3 size() const { return { max.x-min.x, max.y-min.y, max.z-min.z }; }
+    };
+
+    Bounds getBounds(const std::string& type) const;
     /**
      * 
      */

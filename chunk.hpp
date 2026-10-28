@@ -4,6 +4,10 @@
 #include <vector>
 #include <heightmap.hpp>
 
+#define CHUNK_X_SIZE 16
+#define CHUNK_Y_SIZE 64
+#define CHUNK_Z_SIZE 16
+
 /************* 
  * 
  * Chunk Type
@@ -24,10 +28,10 @@ enum class ChunkType {
  * 
  */
 struct ChunkParams {
-    ChunkType type  = ChunkType::Flat;
-    int sizeX       = 16;
-    int sizeY       = 64;
-    int sizeZ       = 16;
+    ChunkType type  = ChunkType::Heightmap;
+    int sizeX       = CHUNK_X_SIZE;
+    int sizeY       = CHUNK_Y_SIZE;
+    int sizeZ       = CHUNK_Z_SIZE;
 
     // chunk type-specific
     float waveAmplitide = 4.0f;
@@ -42,10 +46,10 @@ struct ChunkParams {
 
 /*********** 
  *
- * Chunk Buffer 
+ * Chunk Data
  * 
  ******/
-struct ChunkBuffer {
+struct ChunkData {
     int sx = 0, sy = 0, sz = 0;
     std::vector<uint8_t> meshes;
 
@@ -74,5 +78,5 @@ struct ChunkBuffer {
 class Chunk {
 public:
     // heightmap + params -> chunk buffer.
-    ChunkBuffer generateChunk(const ChunkParams& p, const Heightmap& heightmap);
+    static ChunkData generateChunk(const ChunkParams& p, const Heightmap& heightmap);
 };

@@ -94,6 +94,26 @@ void Mesh::uploadMesh(const std::string& type, const MeshData& data) {
     copyBuffer(vertexStaging, bufferData.vertexBuffer, vertexSize);
     copyBuffer(indexStaging, bufferData.indexBuffer, indexSize);
 
+    Vec3 mn(std::numeric_limits<float>::max(),
+            std::numeric_limits<float>::max(),
+            std::numeric_limits<float>::max());
+    Vec3 mx(-std::numeric_limits<float>::max(),
+            -std::numeric_limits<float>::max(),
+            -std::numeric_limits<float>::max());
+
+    const size_t stride = 11;
+    for(size_t i = 0; i+2 < data.vertices.size(); i += stride) {
+        float x = data.vertices[i+0];
+        float y = data.vertices[i+1];
+        float z = data.vertices[i+2];
+        if(x < mn.x) mn.x = x; if(x > mx.x) mx.x = x;
+        if(y < mn.y) mn.y = y; if(y > mx.y) mx.y = y;
+        if(z < mn.z) mn.z = z; if(z > mx.z) mx.z = z;
+    }
+
+    bufferData.minBounds = mn;
+    bufferData.maxBounds = mx;
+
     vkDestroyBuffer(device, vertexStaging, nullptr);
     vkFreeMemory(device, vertexStagingMem, nullptr);
     vkDestroyBuffer(device, indexStaging, nullptr);
@@ -133,6 +153,22 @@ void Mesh::createBuffer(
     }
 
     vkBindBufferMemory(device, buffer, bufferMemory, 0);
+}
+
+/**
+ * Get Bounds
+ */
+Mesh::Bounds Mesh::getBounds(const std::string& type) const {
+    auto it = bufferMeshes.find(type);
+    if(it != bufferMeshes.end()) {
+        return { it->second.minBounds, it->second.maxBounds };
+    }
+
+    const auto& dataMap = Data();
+    auto dit = dataMap.find(type);
+    if(dit == dataMap.end()) throw std::runtime_error("Mesh::getBounds: unknown type " + type);
+
+    return { dit->second.minBounds, dit->second.maxBounds }; 
 }
 
 /**

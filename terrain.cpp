@@ -7,6 +7,13 @@ Terrain::Terrain(Tick& tick, Mesh& mesh) :
 Terrain::~Terrain() {};
 
 /**
+ * Upload
+ */
+void Terrain::upload(const ChunkData& chunkData) {
+    
+}
+
+/**
  * Set
  */
 void Terrain::set() {

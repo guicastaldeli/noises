@@ -2,6 +2,7 @@
 
 #include <tick.hpp>
 #include <mesh.hpp>
+#include <chunk.hpp>
 
 class Terrain {
 private:
@@ -13,6 +14,7 @@ public:
     ~Terrain();
 
     void set();
+    void upload(const ChunkData& chunkData);
     void update();
     void render();
     void init();

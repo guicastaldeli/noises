@@ -7,8 +7,8 @@
  * Generate Chunk
  * 
  */
-ChunkBuffer Chunk::generateChunk(const ChunkParams& p, const Heightmap& heightmap) {
-    ChunkBuffer c;
+ChunkData Chunk::generateChunk(const ChunkParams& p, const Heightmap& heightmap) {
+    ChunkData c;
     c.sx = p.sizeX;
     c.sy = p.sizeY;
     c.sz = p.sizeZ;
