@@ -3,13 +3,87 @@
 #include <cmath>
 #include <input.hpp>
 
+/**************** 
+ * 
+ * RigidBody
+ * 
+ * *****/
+// Set Tick
+void RigidBody::setTick(const Tick& t) {
+    tick = &t;
+}
+
+// Get Position
+const Vec3& RigidBody::getPosition() const {
+    return position;
+}
+
+// Set Position
+void RigidBody::setPosition(const Vec3& p) {
+    position = p;
+}
+
+// Get Velocity
+const Vec3& RigidBody::getVelocity() const {
+    return velocity;
+}
+
+// Set Velocity
+void RigidBody::setVelocity(const Vec3& v) {
+    velocity = v;
+}
+
+// Get Size
+const Vec3& RigidBody::getSize() const {
+    return size;
+}
+
+// Set Size
+void RigidBody::setSize(const Vec3& s) {
+    size = s;
+}
+
+// Move
+void RigidBody::move(Vec3 m, float moveSpeed) {
+    float v = 1e-6f;
+    float len = std::sqrt(m.x*m.x + m.y*m.y + m.z*m.z);
+    if(len > v) {
+        m.x /= len; m.y /= len; m.z /= len;
+        setVelocity(m * moveSpeed);
+    } else {
+        setVelocity(Vec3(0, 0, 0));
+    }
+}
+
+// Update
+void RigidBody::update() {
+    float deltaTime = tick->GetDeltaTime();
+    position += velocity * deltaTime;
+}
+/**
+ * 
+ */
+
+/*************************
+ * 
+ * Camera
+ * 
+ *************************/
 Camera::Camera(Main& main, Tick& tick) : 
     main(main),
     tick(tick) {
     position = Vec3(POS_X, -POS_Y, POS_Z);
+    rigidBody.setTick(tick);
     set();
 }
 Camera::~Camera() {};
+
+/**
+ * Get RigidBody
+ */
+RigidBody& Camera::getRigidBody() {
+    return rigidBody;
+}
 
 /**
  * Set Input
@@ -144,6 +218,7 @@ void Camera::set() {
  */
 void Camera::move() {
     Vec3 move(0.0f, 0.0f, 0.0f);
+
     float f = 1.0f;
     if(input->down(Input::Bindings::FORWARD))   move = move + forward;
     if(input->down(Input::Bindings::BACKWARD))  move = move - forward;
@@ -152,14 +227,7 @@ void Camera::move() {
     if(input->down(Input::Bindings::UP))        move.y -= f;
     if(input->down(Input::Bindings::DOWN))      move.y += f;
 
-    float len = std::sqrt(move.x*move.x + move.y*move.y + move.z*move.z);
-    int v = 1e-6f;
-    if(len > v) {
-        move.x /= len; move.y /= len; move.z /= len;
-        float speed = MOVE_SPEED;
-        float dt = tick.GetDeltaTime() * 0.001f;
-        position = position + move * (speed * dt);
-    }
+    rigidBody.move(move, MOVE_SPEED);
 }
 
 /**
@@ -186,9 +254,11 @@ void Camera::update() {
  * Init
  * 
  */
-void Camera::init(Input* input) {
+void Camera::init(Input* input, CollisionManager* collision) {
     setInput(input);
     this->input->setCursorCaptured(true);
     set();
     setPosition();
+    rigidBody.update();
+    collision->set(getRigidBody(), CollisionType::STATIC_COLLIDER);
 }

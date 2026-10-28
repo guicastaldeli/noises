@@ -196,35 +196,53 @@ bool Collider::isVisible() const {
  * Collision Manager
  * 
  */
-CollisionManager::CollisionManager(Mesh& mesh) : mesh(mesh) {};
+CollisionManager::CollisionManager(Tick& tick, Mesh& mesh) : 
+    tick(tick),    
+    mesh(mesh) {};
 CollisionManager::~CollisionManager() {};
 
-// Collider Exists
+/**
+ * Collider Exists
+ */
 bool CollisionManager::colliderExists(const std::string& id) const {
     if(std::find(removedIds.begin(), removedIds.end(), id) != removedIds.end()) return false;
     return colliderIdSet.count(id) > 0;
 }
 
-// Get Collider
+/**
+ * Get Collider
+ */
 Collider* CollisionManager::getCollider(const std::string& id) {
-    for(auto& c : colliders) if(c->getId() == id) return c.get();
+    for(Collider* c : colliders) if(c->getId() == id) return c;
     return nullptr;
 }
 
-// Get Colliders
+/**
+ * Get Colliders
+ */
 std::vector<Collider*> CollisionManager::getColliders() {
-    std::vector<Collider*> out;
-    out.reserve(colliders.size());
-    for(auto& c : colliders) out.push_back(c.get());
-    return out;
+    return colliders;
 }
 
-// Remove Collider
+/**
+ * Remove Collider
+ */
 void CollisionManager::removeCollider(const std::string& id) {
+    colliders.erase(
+        std::remove_if(colliders.begin(), colliders.end(),
+                        [&](Collider* c) { return c->getId() == id; }),
+        colliders.end());
+    ownedColliders.erase(
+        std::remove_if(ownedColliders.begin(), ownedColliders.end(),
+                        [&](const std::unique_ptr<Collider&> c) { return c->getId() == id; }),
+        ownedColliders.end());
+    colliderIdSet.erase(id);
     removedIds.push_back(id);
 }
 
-// Local Box For
+/**
+ * Local Box For
+ */
 const BBox& CollisionManager::localBoxFor(const std::string& type) {
     auto it = localBoxCache.find(type);
     if(it != localBoxCache.end()) return it->second;
@@ -252,7 +270,9 @@ const BBox& CollisionManager::localBoxFor(const std::string& type) {
     return inserted->second;
 }
 
-// Set Collision
+/**
+ * Set
+ */
 void CollisionManager::set(uint32_t id, CollisionType type) {
     const std::string typeName = mesh.getType(id);
     if(typeName.empty()) return;
@@ -266,10 +286,12 @@ void CollisionManager::set(uint32_t id, CollisionType type) {
                         pos.x + local.maxX, pos.y + local.maxY, pos.z + local.maxZ);
 
             const std::string sid = std::to_string(id);
-            auto obj = std::make_unique<StaticCollider>(world, sid, id);
-
+            auto owned = std::make_unique<StaticCollider>(world, sid, id);
+            
+            Collider* raw = owned.get();
+            ownedColliders.push_back(std::move(owned));
+            colliders.push_back(raw);
             colliderIdSet.insert(sid);
-            colliders.push_back(std::move(obj));
             break;
         }
         // Boundary
@@ -279,14 +301,30 @@ void CollisionManager::set(uint32_t id, CollisionType type) {
     }
 }
 
-// Check Collision
+void CollisionManager::set(RigidBody& rigidBody, CollisionType type) {
+    for(const Entry& e : dynamicRigidBody) {
+        if(e.rigidBody == &rigidBody) return;
+    }
+    dynamicRigidBody.push_back({ &rigidBody, type });
+}
+
+/**
+ * Has RigidBody
+ */
+bool CollisionManager::hasRigidBody(const RigidBody& rigidBody) const {
+    for(const Entry& e : dynamicRigidBody) {
+        if(e.rigidBody == &rigidBody) return true;
+    }
+    return false;
+}
+
+/**
+ * Check Collision
+ */
 std::vector<CollisionResult> CollisionManager::checkCollision(const BBox& bbox) {
     std::vector<CollisionResult> results;
     
-    std::vector<Collider*> snapshot;
-    snapshot.reserve(colliders.size());
-    for(auto& c : colliders) snapshot.push_back(c.get());
-
+    std::vector<Collider*> snapshot = colliders;
     for(Collider* c : snapshot) {
         if(auto* b = dynamic_cast<BoundaryCollider*>(c)) {
             if(b->isActive()) {
@@ -320,13 +358,13 @@ std::vector<CollisionResult> CollisionManager::checkCollision(const BBox& bbox) 
     return results;
 }
 
-// Resolve Collision
-void CollisionManager::resolveCollision(
-    const BBox& bbox, 
-    Vec3& position, 
-    Vec3& velocity, 
-    std::vector<CollisionResult>& collisions
-) {
+/**
+ * Resolve Collision
+ */
+void CollisionManager::resolveCollision(RigidBody& rigidBody,
+                                        const BBox& bbox,
+                                        std::vector<CollisionResult>& collisions) 
+{
     if(collisions.empty()) return;
     std::sort(collisions.begin(), collisions.end(),
             [](const CollisionResult& a, const CollisionResult& b) {
@@ -337,24 +375,30 @@ void CollisionManager::resolveCollision(
         Collider* collider = collision.otherCollider;
         if(!collider) continue;
 
+        // Boundary
         if(auto* boundary = dynamic_cast<BoundaryCollider*>(collider)) {
-            Vec3 newPos = position;
+            Vec3 position = rigidBody.getPosition();
+
             float dist = boundary->getBoundaryDistance();
             const Vec3& center = boundary->getCenter();
 
             float localX = position.x - center.x;
             float localZ = position.z - center.z;
 
-            if(std::fabs(localX) > dist) newPos.x = center.x + std::copysign(dist, localX);
-            if(std::fabs(localZ) > dist) newPos.z = center.z + std::copysign(dist, localZ);
-            position = newPos;
+            if(std::fabs(localX) > dist) position.x = center.x + std::copysign(dist, localX);
+            if(std::fabs(localZ) > dist) position.z = center.z + std::copysign(dist, localZ);
+            rigidBody.setPosition(position);
 
+            Vec3 velocity = rigidBody.getVelocity();
             if(collision.normal.x != 0.0f) velocity.x = 0.0f;
             if(collision.normal.z != 0.0f) velocity.z = 0.0f;
 
             continue;
         }
+        // Static
         if(dynamic_cast<StaticCollider*>(collider)) {
+            Vec3 position = rigidBody.getPosition();
+
             if(collision.depth > 0.0001f) {
                 position += collision.normal * collision.depth;
             }
@@ -362,15 +406,60 @@ void CollisionManager::resolveCollision(
                 BBox cbox = collider->getBBox();
                 float halfHeight = (bbox.maxY - bbox.minY) * 0.5f;
                 position.y = cbox.maxY + halfHeight;
+
+                Vec3 velocity = rigidBody.getVelocity();
                 velocity.y = 0.0f;
+                rigidBody.setVelocity(velocity);
             }
         }
     }
 }
 
-// Clear
+void CollisionManager::resolveCollision(Collider& collider, std::vector<CollisionResult>& collisions) {
+    if(collisions.empty()) return;
+
+    RigidBody* rigidBody = collider.getRigidBody();
+    if(!rigidBody) return;
+
+    const BBox bounds = collider.getBBox();
+    resolveCollision(*rigidBody, bounds, collisions);
+}
+
+/**
+ * 
+ * Update
+ * 
+ */
+void CollisionManager::update() {
+    const std::vector<Collider*> colliderSnapshot = colliders;
+    for(Collider* collider : colliderSnapshot) {
+        RigidBody* rigidBody = collider->getRigidBody();
+        if(!rigidBody) continue;
+        rigidBody->update();
+
+        BBox bounds = collider->getBBox();
+        std::vector<CollisionResult> results = checkCollision(bounds);
+        resolveCollision(*collider, results);
+    }
+    const std::vector<Entry> rigidBodySnapshot = dynamicRigidBody;
+    for(const Entry& entry : rigidBodySnapshot) {
+        RigidBody* rigidBody = entry.rigidBody;
+        rigidBody->update();
+
+        BBox bounds;
+        bounds.setFromCenter(rigidBody->getPosition(), rigidBody->getSize());
+
+        std::vector<CollisionResult> results = checkCollision(bounds);
+        resolveCollision(*rigidBody, bounds, results);
+    }
+}
+
+/**
+ * Clear
+ */
 void CollisionManager::clear() {
     colliders.clear();
+    ownedColliders.clear();
     colliderIdSet.clear();
     removedIds.clear();
     localBoxCache.clear();

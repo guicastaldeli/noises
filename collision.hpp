@@ -10,7 +10,9 @@
 #include <unordered_set>
 #include <algorithm>
 #include <cmath>
+#include <tick.hpp>
 #include <mesh.hpp>
+#include <camera.hpp>
 
 /************** 
  * 
@@ -146,6 +148,7 @@ public:
  * Collider
  * 
  */
+class RigidBody;
 class Collider {
 protected:
     bool visible = true;
@@ -160,6 +163,9 @@ public:
     virtual void        onCollision(const CollisionResult&) {}
     virtual void        setVisible(bool v)                  { visible = v; }
     virtual bool        isVisible() const                   { return visible; }
+
+    virtual RigidBody*  getRigidBody()                      { return nullptr; }
+    virtual const RigidBody* getRigidBody() const           { return nullptr; }
 };
 /**
  * 
@@ -172,29 +178,44 @@ public:
  */
 class CollisionManager {
 private:
+    /*********
+     * Entry
+     */
+    struct Entry {
+        RigidBody*      rigidBody;
+        CollisionType   type;
+    };
+    /** */
+
+    Tick& tick;
     Mesh& mesh;
 
     std::unordered_map<std::string, BBox> localBoxCache;
-    std::vector<std::unique_ptr<Collider>> colliders;
+    std::vector<Collider*> colliders;
+    std::vector<std::unique_ptr<Collider>> ownedColliders;
+    std::vector<Entry> dynamicRigidBody;
     std::unordered_set<std::string> colliderIdSet;
     std::vector<std::string> removedIds;
 
     const BBox& localBoxFor(const std::string& type);
     
 public:
-    CollisionManager(Mesh& mesh);
+    CollisionManager(Tick& tick, Mesh& mesh);
     ~CollisionManager();
 
     void set(uint32_t id, CollisionType type);
+    void set(RigidBody& rigidBody, CollisionType type);
 
     bool colliderExists(const std::string& id) const;
+    bool hasRigidBody(const RigidBody& rigidBody) const;
     Collider* getCollider(const std::string& id);
     std::vector<Collider*> getColliders();
 
     std::vector<CollisionResult> checkCollision(const BBox& bbox);
-    void resolveCollision(const BBox& bbox,
-                        Vec3& position, Vec3& velocity,
-                        std::vector<CollisionResult>& collisions);
+    void resolveCollision(Collider& collider, std::vector<CollisionResult>& collisions);
+    void resolveCollision(RigidBody& rigidBody, const BBox& bbox, std::vector<CollisionResult>& collisions);
+
+    void update();
 
     void removeCollider(const std::string& id);
     void clear();

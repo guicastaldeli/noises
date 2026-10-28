@@ -20,8 +20,10 @@ Main::Main() {
     mesh        = new Mesh(*this, *camera);
     terrain     = new Terrain(*tick, *mesh);
     ui          = new UI(*this, *window);
+    collision   = new CollisionManager(*tick, *mesh);
 }
 Main::~Main() {
+    delete collision;   collision = nullptr;
     delete ui;          ui = nullptr;
     delete terrain;     terrain = nullptr;
     delete mesh;        mesh = nullptr;
@@ -64,6 +66,7 @@ void Main::Update() {
         window->update();
         input->update();
         camera->update();
+        collision->update();
         terrain->update();
         mesh->beginFrame();
         drawFrame();
@@ -222,7 +225,7 @@ void Main::Config() {
  * 
  */
 void Main::Init() {
-    camera->init(input);
+    camera->init(input, collision);
     mesh->setInit(device, commandPool, graphicsQueue, physicalDevice, MAX_FRAMES_IN_FLIGHT);
     mesh->init();
     terrain->init();

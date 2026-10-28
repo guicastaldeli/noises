@@ -16,6 +16,7 @@
 #include <input.hpp>
 #include <mesh.hpp>
 #include <terrain.hpp>
+#include <collision.hpp>
 #include <ui.hpp>
 #include <vulkan/vulkan.h>
 #include <iostream>
@@ -90,14 +91,15 @@ public:
     std::vector<VkFence> inFlightFences;
     bool framebufferResized = false;
 
-    Window* window      = nullptr;
-    Tick* tick          = nullptr;
-    Shader* shader      = nullptr;
-    Camera* camera      = nullptr;
-    Input* input        = nullptr;
-    Mesh* mesh          = nullptr;
-    Terrain* terrain    = nullptr;
-    UI* ui              = nullptr;
+    Window* window                  = nullptr;
+    Tick* tick                      = nullptr;
+    Shader* shader                  = nullptr;
+    Camera* camera                  = nullptr;
+    Input* input                    = nullptr;
+    Mesh* mesh                      = nullptr;
+    Terrain* terrain                = nullptr;
+    UI* ui                          = nullptr;
+    CollisionManager* collision     = nullptr;
 
     const int MAX_FRAMES_IN_FLIGHT = 2;
     
