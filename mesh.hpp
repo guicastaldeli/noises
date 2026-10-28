@@ -289,6 +289,11 @@ public:
     Mesh(Main& main, Camera& camera);
     ~Mesh();
 
+    inline static constexpr size_t kVertexStride = sizeof(Vertex) / sizeof(float);
+
+    const std::vector<float>* getVertices(const std::string type) const;
+    std::string getType(uint32_t id) const;
+    Vec3 getPosition(uint32_t id) const;
     void setPosition(uint32_t id, float x, float y, float z);
     void setRotation(uint32_t id, float x, float y, float z);
     void setScale(uint32_t id, float x, float y, float z);

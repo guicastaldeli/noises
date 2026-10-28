@@ -16,6 +16,33 @@ Mesh::Mesh(Main& main, Camera& camera) :
 Mesh::~Mesh() {};
 
 /**
+ * Get Vertices
+ */
+const std::vector<float>* Mesh::getVertices(const std::string type) const {
+    const auto& dataMap = Data();
+    auto it = dataMap.find(type);
+    if(it == dataMap.end()) return nullptr;
+    return &it->second.vertices;
+}
+
+/**
+ * Get Type
+ */
+std::string Mesh::getType(uint32_t id) const {
+    auto it = idToType.find(id);
+    return (it == idToType.end()) ? std::string{} : it->second;
+}
+
+/**
+ * Get Position
+ */
+Vec3 Mesh::getPosition(uint32_t id) const {
+    auto it = transforms.find(id);
+    if(it == transforms.end()) return Vec3(0.0f, 0.0f, 0.0f);
+    return it->second.position;
+}
+
+/**
  * Set Position
  */
 void Mesh::setPosition(uint32_t id, float x, float y, float z) {
