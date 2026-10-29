@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <vector>
 #include <heightmap.hpp>
+#include <.lib/enum/enum_reflect.hpp>
 
 #define CHUNK_X_SIZE 16
 #define CHUNK_Y_SIZE 64
@@ -21,6 +22,7 @@ enum class ChunkType {
     Cheese,
     Cave
 };
+template<> constexpr int reflect::enum_count<ChunkType> = 7;
 
 /*******************
  * 

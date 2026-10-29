@@ -2,8 +2,11 @@
 
 #include <cake.hpp>
 #include <window.hpp>
-#include <vulkan/vulkan.h>
 #include <imgui.h>
+#include <data.hpp>
+#include <chunk.hpp> 
+#include <vulkan/vulkan.h>
+#include <utils/enum.hpp>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_vulkan.h>
 
@@ -61,13 +64,61 @@ public:
     
         ImGui_ImplVulkan_Init(&initInfo);
     }
-    /*** Render ***/void R(VkCommandBuffer cmd) {
+    /*** Render ***/template<typename T>void R(VkCommandBuffer cmd, T& data) {
         ImGui_ImplVulkan_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::Begin("Debug");
-        ImGui::Text("Hello world");
+        // Noise
+        ImGui::Begin("Noise");
+        {
+            combo("Type", data.noise.type);
+            combo("Interp", data.noise.interp);
+            combo("Fractal", data.noise.fractal);
+            combo("Cell Dist", data.noise.cellDist);
+            combo("Cell Ret", data.noise.cellRet);
+
+            ImGui::Separator();
+            ImGui::SliderFloat("Frequency", &data.noise.frequency, 0.001f, 0.2);
+            ImGui::SliderInt("Seed", &data.noise.seed, 0, 100000);
+            ImGui::SliderInt("Octaves", &data.noise.octaves, 1, 10);
+            ImGui::SliderFloat("Lacunary", &data.noise.lacunary, 1.0f, 4.0f);
+            ImGui::SliderFloat("Gain", &data.noise.gain, 0.0f, 1.0f);
+
+            const float maxY = float(data.chunk.sizeY);
+            ImGui::SliderFloat("Min Height", &data.noise.minHeight, 0.0f, maxY);
+            ImGui::SliderFloat("Max Height", &data.noise.maxHeight, 0.0f, maxY);
+        }
+        ImGui::End();
+
+        // Chunk
+        ImGui::Begin("Chunk");
+        {
+            combo("Type", data.chunk.type);
+
+            ImGui::SliderInt("Size X", &data.chunk.sizeX, 1, 64);
+            ImGui::SliderInt("Size Y", &data.chunk.sizeY, 1, 128);
+            ImGui::SliderInt("Size Z", &data.chunk.sizeZ, 1, 64);
+
+            ImGui::Separator();
+
+            if(data.chunk.type == ChunkType::Wave) {
+                ImGui::SliderFloat("Wave Amplitude", &data.chunk.waveAmplitude, 0.0f, 16.0f);
+                ImGui::SliderFloat("Wave Frequency", &data.chunk.waveFrequency, 0.0f, 4.0f);
+            }
+            if(data.chunk.type == ChunkType::Cheese) {
+                ImGui::SliderFloat("Cheese Density", &data.chunk.cheeseDensity, 0.0f, 1.0f);
+            }
+            if(data.chunk.type == ChunkType::Cave) {
+                ImGui::SliderFloat("Cave Threshold", &data.chunk.caveThreshold, 0.0f, 1.0f);
+            }
+
+            ImGui::Separator();
+
+            ImGui::Checkbox("Collision", &data.collision);
+
+            if(ImGui::Button("Load Terrain")) data.loadTerrain();
+        }
         ImGui::End();
 
         ImGui::Render();

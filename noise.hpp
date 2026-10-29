@@ -10,6 +10,7 @@
 
 #include <cstdint>
 #include <vector>
+#include <.lib/enum/enum_reflect.hpp>
 
 /******
  * 
@@ -26,6 +27,7 @@ enum class NoiseType {
     Cubic,
     CubicFractual
 };
+template<> constexpr int reflect::enum_count<NoiseType> = 10;
 
 /****** 
  * 
@@ -37,6 +39,7 @@ enum class InterpType {
     Hermite,
     Quintic
 };
+template<> constexpr int reflect::enum_count<InterpType> = 3;
 
 /*********
  * 
@@ -48,6 +51,7 @@ enum class FractalType {
     Billow,
     RigitMulti
 };
+template<> constexpr int reflect::enum_count<FractalType> = 3;
 
 /***************
  * 
@@ -59,6 +63,7 @@ enum class CellularDistance {
     Manhattan,
     Natural
 };
+template<> constexpr int reflect::enum_count<CellularDistance> = 3;
 
 /**** 
  * 
@@ -75,6 +80,7 @@ enum class CellularReturn {
     Distance2Mul,
     Distance2Div
 };
+template<> constexpr int reflect::enum_count<CellularReturn> = 8;
 
 /*********************
  * 

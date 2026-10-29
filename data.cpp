@@ -2,10 +2,20 @@
 #include <chunk.hpp>
 #include <terrain.hpp>
 
-Data::Data(Terrain& terrain, UI& ui) :
-    terrain(terrain),
-    ui(ui) {};
+Data::Data(Terrain& terrain) : terrain(terrain) {};
 Data::~Data() {};
+
+/**
+ * Load Terrain
+ */
+void Data::loadTerrain() {
+    heightmap = Heightmap::generateHeightmap(chunk.sizeX, chunk.sizeZ, noise);
+    chunkData = Chunk::generateChunk(chunk, heightmap);
+    
+    terrain.trackCollision = collision;
+    terrain.upload(chunkData);
+    hasTerrain = true;
+}
 
 /**
  * 
@@ -29,6 +39,8 @@ void Data::init() {
 
     heightmap = Heightmap(chunk.sizeX, chunk.sizeZ);
     chunkData = Chunk::generateChunk(chunk, heightmap);
+    
     hasTerrain = true;
-    if(terrain != NULL) terrain.upload(chunkData);
+    terrain.trackCollision = collision;
+    terrain.upload(chunkData);
 }

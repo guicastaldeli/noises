@@ -18,14 +18,16 @@ Main::Main() {
     camera      = new Camera(*this, *tick);
     input       = new Input(*this, *window);
     mesh        = new Mesh(*this, *camera);
-    terrain     = new Terrain(*tick, *mesh);
-    ui          = new UI(*this, *window);
     collision   = new CollisionManager(*tick, *mesh);
+    terrain     = new Terrain(*tick, *mesh, *collision);
+    data        = new Data(*terrain);
+    ui          = new UI(*this, *window);
 }
 Main::~Main() {
-    delete collision;   collision = nullptr;
     delete ui;          ui = nullptr;
+    delete data;        data = nullptr;
     delete terrain;     terrain = nullptr;
+    delete collision;   collision = nullptr;
     delete mesh;        mesh = nullptr;
     delete input;       input = nullptr;
     delete camera;      camera = nullptr;
@@ -177,7 +179,7 @@ void Main::Create() {
 void Main::Render(VkCommandBuffer commandPass) {
     terrain->render();
     mesh->render();
-    ui->R(commandPass);
+    ui->R<Data>(commandPass, *data);
 }
 
 void Main::SetRenderPass(VkCommandBuffer cmd, uint32_t imageIndex) {

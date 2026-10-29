@@ -6,27 +6,26 @@
 #include <cstdint>
 
 class Terrain;
-class UI;
 class Data {
 private:
     Terrain& terrain;
-    UI& ui;
 
 public:
-    Data(Terrain& terrain, UI& ui);
+    Data(Terrain& terrain);
     ~Data();
 
     NoiseParams noise;
+    Heightmap heightmap;
     ChunkParams chunk;
+    ChunkData chunkData;
+
+    bool hasTerrain = false;
     bool collision = false;
 
     int chunksX = 1;
     int chunksZ = 1;
 
-    Heightmap heightmap;
-    ChunkData chunkData;
-    bool hasTerrain = false;
-
+    void loadTerrain();
     void init();
 
     const Heightmap& getHeightmap() const { return heightmap; }

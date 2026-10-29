@@ -16,6 +16,7 @@
 #include <input.hpp>
 #include <mesh.hpp>
 #include <terrain.hpp>
+#include <data.hpp>
 #include <collision.hpp>
 #include <ui.hpp>
 #include <vulkan/vulkan.h>
@@ -97,9 +98,10 @@ public:
     Camera* camera                  = nullptr;
     Input* input                    = nullptr;
     Mesh* mesh                      = nullptr;
-    Terrain* terrain                = nullptr;
-    UI* ui                          = nullptr;
     CollisionManager* collision     = nullptr;
+    Terrain* terrain                = nullptr;
+    Data* data                      = nullptr;
+    UI* ui                          = nullptr;
 
     const int MAX_FRAMES_IN_FLIGHT = 2;
     

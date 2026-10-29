@@ -5,7 +5,7 @@
  * Generate Heightmap
  * 
  *****/
-Heightmap generateHeightmap(int sx, int sz, const NoiseParams& p) {
+Heightmap Heightmap::generateHeightmap(int sx, int sz, const NoiseParams& p) {
     Heightmap h(sx, sz);
     if(sx <= 0 || sz <= 0) return h;
 
