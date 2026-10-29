@@ -255,6 +255,7 @@ void Mesh::load(uint32_t id, const std::string& type) {
     Mat4 model = t.GetModelMatrix();
 
     InstanceEntry entry{};
+    entry.id = id;
     entry.model = model;
     entry.type = type;
     pendingInstances.push_back(entry);
@@ -282,12 +283,16 @@ void Mesh::render() {
 
     std::unordered_map<std::string, std::vector<Mat4>> byType;
     for(auto& entry : pendingInstances) {
+        auto tit = transforms.find(entry.id);
+        if(tit == transforms.end()) continue;
+
+        Mat4 model = tit->second.GetModelMatrix();
         Mat4 transported{};
-        for(int r = 0; r < 4; ++r) {
-            for(int c = 0; c < 4; ++c) {
-                transported.m[r][c] = entry.model.m[c][r];
-            }
+        for(int r = 0; r < 4; ++r)
+        for(int c = 0; c < 4; ++c) {
+            transported.m[r][c] = model.m[c][r];
         }
+
         byType[entry.type].push_back(transported);
     }
 
@@ -365,4 +370,22 @@ void Mesh::cleanup() {
     }
     transforms.clear();
     idToType.clear();
+}
+
+/**
+ * Clear Instances
+ */
+void Mesh::clearInstances(const std::vector<uint32_t>& ids) {
+    std::unordered_set<uint32_t> removeSet(ids.begin(), ids.end());
+    for(uint32_t id : ids) {
+        transforms.erase(id);
+        idToType.erase(id);
+    }
+
+    pendingInstances.erase(
+        std::remove_if(pendingInstances.begin(), pendingInstances.end(),
+                        [&](const InstanceEntry& e) {
+                            return removeSet.count(e.id) > 0;
+                        }),
+                        pendingInstances.end());
 }

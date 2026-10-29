@@ -19,6 +19,7 @@ Terrain::~Terrain() {};
 void Terrain::upload(const ChunkData& chunkData) {
     IdGen::reset(ids);
     for(uint32_t id : spawnedIds) collision.removeCollider(std::to_string(id));
+    mesh.clearInstances(spawnedIds);
     spawnedIds.clear();
 
     for(int z = 0; z < chunkData.sz; ++z)

@@ -137,6 +137,7 @@ private:
      * 
      *******/
     struct InstanceEntry {
+        uint32_t id;
         Mat4 model;
         std::string type;
     };
@@ -310,6 +311,7 @@ public:
     void render();
 
     void cleanup();
+    void clearInstances(const std::vector<uint32_t>& ids);
 
     /**
      * Begin Frame
