@@ -22,7 +22,7 @@ enum class ChunkType {
     Cheese,
     Cave
 };
-template<> constexpr int reflect::enum_count<ChunkType> = 7;
+template<> inline constexpr int reflect::enum_count<ChunkType> = 6;
 
 /*******************
  * 
@@ -36,7 +36,7 @@ struct ChunkParams {
     int sizeZ       = CHUNK_Z_SIZE;
 
     // chunk type-specific
-    float waveAmplitide = 4.0f;
+    float waveAmplitude = 4.0f;
     float waveFrequency = 0.5f;
     float cheeseDensity = 0.3f;
     float caveThreshold = 2.0f;
@@ -56,19 +56,14 @@ struct ChunkData {
     std::vector<uint8_t> meshes;
 
     uint8_t& at(int x, int y, int z) {
-        return meshes[std::size_t(x) + std::size_t(z) * 
-                    std::size_t(sx) + std::size_t(y) *
-                    std::size_t(y) * 
-                    std::size_t(sx) *
-                    std::size_t(sx) *
-                    std::size_t(sz)];
+        return meshes[std::size_t(x)
+                + std::size_t(z) * std::size_t(sx)
+                + std::size_t(y) * std::size_t(sx) * std::size_t(sz)];
     }
     uint8_t at(int x, int y, int z) const {
-        return meshes[std::size_t(x) + std::size_t(z) *
-                    std::size_t(sx) + std::size_t(y) *
-                    std::size_t(y) *
-                    std::size_t(sx) *
-                    std::size_t(sz)];
+        return meshes[std::size_t(x)
+                + std::size_t(z) * std::size_t(sx)
+                + std::size_t(y) * std::size_t(sx) * std::size_t(sz)];
     }
 };
 

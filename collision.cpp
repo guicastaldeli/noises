@@ -1,4 +1,5 @@
 #include <collision.hpp>
+#include <camera.hpp>
 
 // ---------------------------------------
 //
@@ -56,6 +57,21 @@ CollisionResult StaticCollider::checkCollision(const BBox& other) const {
 /*******************
  * Boundary Collider
  ***************/
+// Activate
+void BoundaryCollider::activate() {
+    active = true;
+}
+
+// Deactivate
+void BoundaryCollider::deactivate() {
+    active = false;
+}
+
+// Is Active
+bool BoundaryCollider::isActive() const {
+    return active;
+}
+
 // Get Id
 std::string BoundaryCollider::getId() const {
     return "";
@@ -234,7 +250,7 @@ void CollisionManager::removeCollider(const std::string& id) {
         colliders.end());
     ownedColliders.erase(
         std::remove_if(ownedColliders.begin(), ownedColliders.end(),
-                        [&](const std::unique_ptr<Collider&> c) { return c->getId() == id; }),
+                        [&](const std::unique_ptr<Collider>& c) { return c->getId() == id; }),
         ownedColliders.end());
     colliderIdSet.erase(id);
     removedIds.push_back(id);
@@ -286,7 +302,7 @@ void CollisionManager::set(uint32_t id, CollisionType type) {
                         pos.x + local.maxX, pos.y + local.maxY, pos.z + local.maxZ);
 
             const std::string sid = std::to_string(id);
-            auto owned = std::make_unique<StaticCollider>(world, sid, id);
+            auto owned = std::make_unique<StaticCollider>(world, sid, std::to_string(id));
             
             Collider* raw = owned.get();
             ownedColliders.push_back(std::move(owned));

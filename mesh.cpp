@@ -220,6 +220,7 @@ void Mesh::setInit(VkDevice device,
 void Mesh::setInstanceBuffer(VkDeviceSize size) {
     if(instanceBuffer != VK_NULL_HANDLE && instanceBufferSize >= size) return;
     if(instanceBuffer != VK_NULL_HANDLE) {
+        vkDeviceWaitIdle(device);
         vkDestroyBuffer(device, instanceBuffer, nullptr);
         vkFreeMemory(device, instanceBufferMemory, nullptr);
     }

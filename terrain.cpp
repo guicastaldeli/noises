@@ -36,7 +36,6 @@ void Terrain::upload(const ChunkData& chunkData) {
         mesh.load(id, MESH_TYPE);
         if(trackCollision) {
             collision.set(id, CollisionType::STATIC_COLLIDER);
-            spawnedIds.push_back(id);
         }
     }
 }

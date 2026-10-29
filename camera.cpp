@@ -2,6 +2,7 @@
 #include <cake.hpp>
 #include <cmath>
 #include <input.hpp>
+#include <collision.hpp>
 
 /**************** 
  * 
@@ -57,7 +58,8 @@ void RigidBody::move(Vec3 m, float moveSpeed) {
 
 // Update
 void RigidBody::update() {
-    float deltaTime = tick->GetDeltaTime();
+    if(!tick) return;
+    float deltaTime = tick->GetDeltaTime() * 0.001f;
     position += velocity * deltaTime;
 }
 /**

@@ -41,8 +41,8 @@ ChunkData Chunk::generateChunk(const ChunkParams& p, const Heightmap& heightmap)
                     }
                     break;
                 case ChunkType::Wave: {
-                    float hz = std::sin(float(x) * p.waveFrequency) * p.waveAmplitide +
-                                std::cos(float(z) * p.waveFrequency) * p.waveAmplitide;
+                    float hz = std::sin(float(x) * p.waveFrequency) * p.waveAmplitude +
+                                std::cos(float(z) * p.waveFrequency) * p.waveAmplitude;
                     float th = int(std::lround(float(hInt) + hz));
                     if(th < 0) th = 0;
                     if(th > c.sy) th = c.sy;

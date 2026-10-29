@@ -231,6 +231,7 @@ void Main::Init() {
     mesh->setInit(device, commandPool, graphicsQueue, physicalDevice, MAX_FRAMES_IN_FLIGHT);
     mesh->init();
     terrain->init();
+    data->init();
     ui->I<Main>();
 }
 

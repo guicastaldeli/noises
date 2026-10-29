@@ -15,7 +15,7 @@ private:
     Mesh& mesh;
     CollisionManager& collision;
 
-    inline static constexpr char* MESH_TYPE = "cube";
+    inline static constexpr const char* MESH_TYPE = "cube";
     const char* ids = "terrain";
     std::vector<uint32_t> spawnedIds;
 

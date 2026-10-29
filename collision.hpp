@@ -12,7 +12,6 @@
 #include <cmath>
 #include <tick.hpp>
 #include <mesh.hpp>
-#include <camera.hpp>
 
 /************** 
  * 
@@ -23,70 +22,6 @@ enum class CollisionType {
     STATIC_COLLIDER,
     BOUNDARY_COLLIDER
 };
-
-// ---------------------------------------
-//
-// Colliders
-//
-// ---------------------------------------
-class Collider;
-
-/*********************
- * Static Collider
- * **********************/
-class StaticCollider : public Collider {
-private:
-    BBox bbox;
-    Vec3 position{ 0, 0, 0 };
-    float halfX = 0, halfY = 0, halfZ = 0;
-    std::function<BBox()> bboxProv;
-    std::string id, type;
-    bool hasBBox = false, hasPosition = false, hasProv = false;
-
-    CollisionResult calcCollision(const BBox& a, const BBox& b) const;
-
-public:
-    StaticCollider(const BBox& bbox, std::string id, std::string type = "") :
-                    bbox(bbox), id(std::move(id)), type(std::move(type)), hasBBox(true) {};
-
-    BBox getBBox() const override;
-    std::string getId() const override;
-    std::string getType() const override;
-    
-    
-    CollisionResult checkCollision(const BBox& other) const;
-};
-
-/*******************
- * Boundary Collider
- ***************/
-class BoundaryCollider : public Collider {
-private:
-    float distance = 0.0f, thickness = 1.0f;
-    float minHeight = 0.0f, maxHeight = 0.0f;
-    Vec3 center{ 0, 0, 0 };
-    bool active = true;
-
-public:
-    explicit BoundaryCollider(float distance) { setDistance(distance); }
-
-    BBox getBBox() const override;
-    std::string getId() const override;
-    float getMinHeight() const;
-    float getMaxHeight() const;
-    const Vec3& getCenter() const;
-    void setCenter(const Vec3& c);
-    void setDistance(float d);
-    float getBoundaryDistance() const;
-    Vec3 getBoundaryNormal(const Vec3& p) const;
-    float getBoundaryFar(const Vec3& p) const;
-    bool isOutsideBoundary(const Vec3& p) const;
-
-    void activate();
-    void deactivate();
-    bool isActive() const;
-};
-// ---------------------------------------
 
 /******************************
  * 
@@ -161,8 +96,8 @@ public:
     virtual std::string getType()   const { return ""; }
 
     virtual void        onCollision(const CollisionResult&) {}
-    virtual void        setVisible(bool v)                  { visible = v; }
-    virtual bool        isVisible() const                   { return visible; }
+    virtual void        setVisible(bool v);
+    virtual bool        isVisible() const;
 
     virtual RigidBody*  getRigidBody()                      { return nullptr; }
     virtual const RigidBody* getRigidBody() const           { return nullptr; }
@@ -170,6 +105,68 @@ public:
 /**
  * 
  */
+
+// ---------------------------------------
+//
+// Colliders
+//
+// ---------------------------------------
+/*********************
+ * Static Collider
+ * **********************/
+class StaticCollider : public Collider {
+private:
+    BBox bbox;
+    Vec3 position{ 0, 0, 0 };
+    float halfX = 0, halfY = 0, halfZ = 0;
+    std::function<BBox()> bboxProv;
+    std::string id, type;
+    bool hasBBox = false, hasPosition = false, hasProv = false;
+
+    CollisionResult calcCollision(const BBox& a, const BBox& b) const;
+
+public:
+    StaticCollider(const BBox& bbox, std::string id, std::string type = "") :
+                    bbox(bbox), id(std::move(id)), type(std::move(type)), hasBBox(true) {};
+
+    BBox getBBox() const override;
+    std::string getId() const override;
+    std::string getType() const override;
+    
+    
+    CollisionResult checkCollision(const BBox& other) const;
+};
+
+/*******************
+ * Boundary Collider
+ ***************/
+class BoundaryCollider : public Collider {
+private:
+    float distance = 0.0f, thickness = 1.0f;
+    float minHeight = 0.0f, maxHeight = 0.0f;
+    Vec3 center{ 0, 0, 0 };
+    bool active = true;
+
+public:
+    explicit BoundaryCollider(float distance) { setDistance(distance); }
+
+    BBox getBBox() const override;
+    std::string getId() const override;
+    float getMinHeight() const;
+    float getMaxHeight() const;
+    const Vec3& getCenter() const;
+    void setCenter(const Vec3& c);
+    void setDistance(float d);
+    float getBoundaryDistance() const;
+    Vec3 getBoundaryNormal(const Vec3& p) const;
+    float getBoundaryFar(const Vec3& p) const;
+    bool isOutsideBoundary(const Vec3& p) const;
+
+    void activate();
+    void deactivate();
+    bool isActive() const;
+};
+// ---------------------------------------
 
 /*****************************
  * 

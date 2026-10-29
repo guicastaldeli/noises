@@ -246,14 +246,14 @@ float Noise::sampleNoise(const NoiseParams& p, float x, float y, float z) {
                     case CellularReturn::Distance2Add:      d = d + d; break;
                     case CellularReturn::Distance2Sub:      d = d - d; break;
                     case CellularReturn::Distance2Mul:      d = d * d; break;
-                    case CellularReturn::Distance2Div:      d = d / (d + 1e6f);
+                    case CellularReturn::Distance2Div:      d = d / (d + 1e6f); break;
                     case CellularReturn::NoiseLookup:       d = perlin2(x * f, z * f, p.seed, p.interp); break;
                 }
 
                 return d * 2.0f - 1.0f;
             }
         }
-
-        return 0.0f;
     }
+
+    return 0.0f;
 }

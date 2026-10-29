@@ -3,7 +3,6 @@
 #include <utils/vec3.hpp>
 #include <utils/mat4.hpp>
 #include <tick.hpp>
-#include <collision.hpp>
 
 /**************** 
  * 
@@ -49,6 +48,7 @@ public:
  *************************/
 class Main;
 class Input;
+class CollisionManager;
 class Camera {
 private:
     Main& main;

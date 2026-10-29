@@ -1,4 +1,4 @@
-#pragma
+#pragma once
 
 #include <imgui.h>
 #include <.lib/enum/enum_combo.hpp>
@@ -16,7 +16,7 @@ bool combo(const char* label, E& value) {
                 value = candidate;
                 changed = true;
             }
-            if(selected) ImGui::SetItemDefaultFocus;
+            if(selected) ImGui::SetItemDefaultFocus();
         });
         ImGui::EndCombo();
     }

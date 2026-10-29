@@ -19,7 +19,7 @@ public:
     int sz() const { return m_sz; }
     float at(int x, int z) const { return m_data[std::size_t(x) + std::size_t(z) * std::size_t(m_sz)]; }
     float& at(int x, int z) { return m_data[std::size_t(x) + std::size_t(z) * std::size_t(m_sx)]; }
-    float clear() { m_sx = m_sz = 0; m_data.clear(); }
+    void clear() { m_sx = m_sz = 0; m_data.clear(); }
     
     // Generates a heightmap of size (sx, sz)
     // range [params.minHeight, params.maxHeight]
