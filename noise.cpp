@@ -7,7 +7,7 @@ namespace {
 // hash: 32-bit integer hash -> float in [-1, 1]
 inline uint32_t hash3(int32_t x, int32_t y, int32_t z, int32_t seed) {
     uint32_t h = uint32_t(seed);
-    h ^= uint32_t(x) * 0x9E377B1u;
+    h ^= uint32_t(x) * 0x9E3779B1;
     h ^= uint32_t(y) * 0x85EBCA77u;
     h ^= uint32_t(z) * 0xC2B2AE3Du;
     h ^= h >> 16;

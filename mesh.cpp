@@ -326,7 +326,7 @@ void Mesh::render() {
         drawCalls++;
     }
 
-    pendingInstances.clear();
+    //pendingInstances.clear();
 }
 
 /**

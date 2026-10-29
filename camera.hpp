@@ -9,12 +9,14 @@
  * RigidBody
  * 
  * *****/
+class Camera;
 class RigidBody {
 private:
     Vec3 position{ 0, 0, 0 };
     Vec3 velocity{ 0, 0, 0 };
     Vec3 size{ 1, 1, 1 };
 
+    const Camera* camera = nullptr;
     const Tick* tick = nullptr;
     
 public:
@@ -23,6 +25,7 @@ public:
                 position(position),
                 size(size) {};
 
+    void setCamera(const Camera& c);
     void setTick(const Tick& t);
 
     const Vec3& getPosition() const;
@@ -36,6 +39,7 @@ public:
 
     void move(Vec3 m, float moveSpeed);
     void update();
+    void init();
 };
 /**
  * 
@@ -81,6 +85,8 @@ public:
     float MOUSE_SENSV = 0.0025f;
 
     Vec3 rigidBodySize{ 1.0f, 1.0f, 1.0f };
+
+    Tick& getTick() const;
 
     void setInput(Input* input); 
 

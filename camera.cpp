@@ -9,6 +9,11 @@
  * RigidBody
  * 
  * *****/
+// Set Camera
+void RigidBody::setCamera(const Camera& c) {
+    camera = &c;
+}
+
 // Set Tick
 void RigidBody::setTick(const Tick& t) {
     tick = &t;
@@ -62,6 +67,15 @@ void RigidBody::update() {
     float deltaTime = tick->GetDeltaTime() * 0.001f;
     position += velocity * deltaTime;
 }
+
+// Init
+void RigidBody::init() {
+    setTick(camera->getTick());
+    setSize(camera->rigidBodySize);
+    setPosition(Vec3(camera->POS_X, 
+                    camera->POS_Y, 
+                    camera->POS_Z));
+}
 /**
  * 
  */
@@ -75,10 +89,20 @@ Camera::Camera(Main& main, Tick& tick) :
     main(main),
     tick(tick) {
     position = Vec3(POS_X, -POS_Y, POS_Z);
-    rigidBody.setTick(tick);
+
+    rigidBody.setCamera(*this);
+    rigidBody.init();
+
     set();
 }
 Camera::~Camera() {};
+
+/**
+ * Get Tick
+ */
+Tick& Camera::getTick() const {
+    return tick;
+}
 
 /**
  * Get RigidBody
@@ -98,7 +122,7 @@ void Camera::setInput(Input* input) {
  * Set Position
  */
 void Camera::setPosition() {
-    position = Vec3(POS_X, -POS_Y, POS_Z);
+    position = Vec3(POS_X, POS_Y, POS_Z);
     set();
     setYawPitch();
 }
@@ -107,7 +131,7 @@ void Camera::setPosition() {
  * Get Position
  */
 Vec3 Camera::getPosition() const {
-    return position;
+    return rigidBody.getPosition();
 }
 
 /**
@@ -146,22 +170,23 @@ void Camera::setYawPitch() {
  * Get View Matrix
  */
 Mat4 Camera::getViewMatrix() const {
+    const Vec3 p = getPosition();
     Mat4 v = Mat4::Identity();
 
     v.m[0][0] = right.x;
     v.m[0][1] = right.y;
     v.m[0][2] = right.z;
-    v.m[0][3] = -right.x * position.x - right.y * position.y - right.z * position.z;
+    v.m[0][3] = -right.x * p.x - right.y * p.y - right.z * p.z;
 
     v.m[1][0] = up.x;
     v.m[1][1] = up.y;
     v.m[1][2] = up.z;
-    v.m[1][3] = -up.x * position.x - up.y * position.y - up.z * position.z;
+    v.m[1][3] = -up.x * p.x - up.y * p.y - up.z * p.z;
 
     v.m[2][0] = -forward.x;
     v.m[2][1] = -forward.y;
     v.m[2][2] = -forward.z;
-    v.m[2][3] = forward.x * position.x + forward.y * position.y + forward.z * position.z;
+    v.m[2][3] = forward.x * p.x + forward.y * p.y + forward.z * p.z;
 
     return v;
 }
