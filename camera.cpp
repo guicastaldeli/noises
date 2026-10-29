@@ -88,7 +88,7 @@ void RigidBody::init() {
 Camera::Camera(Main& main, Tick& tick) : 
     main(main),
     tick(tick) {
-    position = Vec3(POS_X, -POS_Y, POS_Z);
+    position = Vec3(POS_X, POS_Y, POS_Z);
 
     rigidBody.setCamera(*this);
     rigidBody.init();
@@ -178,10 +178,10 @@ Mat4 Camera::getViewMatrix() const {
     v.m[0][2] = right.z;
     v.m[0][3] = -right.x * p.x - right.y * p.y - right.z * p.z;
 
-    v.m[1][0] = up.x;
-    v.m[1][1] = up.y;
-    v.m[1][2] = up.z;
-    v.m[1][3] = -up.x * p.x - up.y * p.y - up.z * p.z;
+    v.m[1][0] = -up.x;
+    v.m[1][1] = -up.y;
+    v.m[1][2] = -up.z;
+    v.m[1][3] = up.x * p.x + up.y * p.y + up.z * p.z;
 
     v.m[2][0] = -forward.x;
     v.m[2][1] = -forward.y;
@@ -251,8 +251,8 @@ void Camera::move() {
     if(input->down(Input::Bindings::BACKWARD))  move = move - forward;
     if(input->down(Input::Bindings::RIGHT))     move = move + right;
     if(input->down(Input::Bindings::LEFT))      move = move - right;
-    if(input->down(Input::Bindings::UP))        move.y -= f;
-    if(input->down(Input::Bindings::DOWN))      move.y += f;
+    if(input->down(Input::Bindings::UP))        move.y += f;
+    if(input->down(Input::Bindings::DOWN))      move.y -= f;
 
     rigidBody.move(move, MOVE_SPEED);
 }
@@ -265,7 +265,7 @@ void Camera::move() {
 void Camera::update() {
     if(input->isCursorCaptured()) {
         yaw -= static_cast<float>(input->mouseDeltaX()) * MOUSE_SENSV;
-        pitch += static_cast<float>(input->mouseDeltaY()) * MOUSE_SENSV;
+        pitch -= static_cast<float>(input->mouseDeltaY()) * MOUSE_SENSV;
 
         const float limit = 1.55334f;
         if(pitch > limit) pitch = limit;

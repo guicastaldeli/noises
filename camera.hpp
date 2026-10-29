@@ -78,7 +78,7 @@ public:
     float fov = 60.0f;
 
     float POS_X = 0.0f;
-    float POS_Y = 1.0f;
+    float POS_Y = 90.0f;
     float POS_Z = 6.0f;
 
     float MOVE_SPEED = 10.0f;

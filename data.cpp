@@ -37,7 +37,7 @@ void Data::init() {
     noise.minHeight = 0.0f;
     noise.maxHeight = float(chunk.sizeY);
 
-    heightmap = Heightmap(chunk.sizeX, chunk.sizeZ);
+    heightmap = Heightmap::generateHeightmap(chunk.sizeX, chunk.sizeZ, noise);
     chunkData = Chunk::generateChunk(chunk, heightmap);
     
     hasTerrain = true;
