@@ -200,7 +200,7 @@ Mat4 Camera::getProjectionMatrix() {
     float f = 1.0f / std::tan(c * 0.5f);
 
     p.m[0][0] = f / main.getAspectRatio();
-    p.m[1][1] = f;
+    p.m[1][1] = -f;
 
     p.m[2][2] = zFar / (zNear - zFar);
     p.m[2][3] = (zNear * zFar) / (zNear - zFar);

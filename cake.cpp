@@ -201,8 +201,11 @@ void Main::SetRenderPass(VkCommandBuffer cmd, uint32_t imageIndex) {
         vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 
         VkViewport vp{};
+        vp.x = 0.0f;
+        vp.y = (float)swapChainExtent.height;
         vp.width = (float)swapChainExtent.width;
-        vp.height = (float)swapChainExtent.height;
+        vp.height = -(float)swapChainExtent.height;
+        vp.minDepth = 0.0f;
         vp.maxDepth = 1.0f;
         vkCmdSetViewport(cmd, 0, 1, &vp);
 
