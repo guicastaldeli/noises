@@ -84,16 +84,27 @@ void StaticCollider::buildGrid() {
 }
 
 // Calc Collision
-CollisionResult StaticCollider::calcCollision(const BBox& a, const BBox& b, const Instance& inst, uint32_t idx) const {
+// collision.cpp - calcCollision
+CollisionResult StaticCollider::calcCollision(const BBox& a, const BBox& b, 
+                                               const Instance& inst, uint32_t idx) const {
     float xO = std::min(a.maxX, b.maxX) - std::max(a.minX, b.minX);
     float yO = std::min(a.maxY, b.maxY) - std::max(a.minY, b.minY);
     float zO = std::min(a.maxZ, b.maxZ) - std::max(a.minZ, b.minZ);
-    
+
     float m = std::min({ xO, yO, zO });
+
+    // Normal points FROM collider center TO player center
+    float acx = (a.minX + a.maxX) * 0.5f;
+    float acy = (a.minY + a.maxY) * 0.5f;
+    float acz = (a.minZ + a.maxZ) * 0.5f;
+    float bcx = (b.minX + b.maxX) * 0.5f;
+    float bcy = (b.minY + b.maxY) * 0.5f;
+    float bcz = (b.minZ + b.maxZ) * 0.5f;
+
     Vec3 n{ 0, 0, 0 };
-    if(m == xO)         n.x = (a.maxX > b.maxX) ? 1.0f : -1.0f;
-    else if(m == yO)    n.y = (a.maxY > b.maxY) ? 1.0f : -1.0f;
-    else                n.z = (a.maxZ > b.maxZ) ? 1.0f : -1.0f;
+    if(m == xO)         n.x = (acx > bcx) ? 1.0f : -1.0f;
+    else if(m == yO)    n.y = (acy > bcy) ? 1.0f : -1.0f;
+    else                n.z = (acz > bcz) ? 1.0f : -1.0f;
 
     return CollisionResult(true, n, m,
                         const_cast<StaticCollider*>(this),
@@ -439,56 +450,61 @@ std::vector<CollisionResult> CollisionManager::checkCollision(const BBox& bbox) 
  */
 void CollisionManager::resolveCollision(RigidBody& rigidBody,
                                         const BBox& bbox,
-                                        std::vector<CollisionResult>& collisions) 
+                                        std::vector<CollisionResult>& collisions)
 {
     if(collisions.empty()) return;
-    std::sort(collisions.begin(), collisions.end(),
-            [](const CollisionResult& a, const CollisionResult& b) {
-                return b.depth < a.depth;
-            });
 
-    for(const CollisionResult& c : collisions) {
+    Vec3 pos = rigidBody.getPosition();
+    Vec3 vel = rigidBody.getVelocity();
+
+    float bestXDepth = 0, bestYDepth = 0, bestZDepth = 0;
+    float bestXNorm = 0, bestZNorm = 0;
+    bool  groundHit = false;
+    float groundY = -1e30f;
+
+    for(auto& c : collisions) {
         if(!c.otherCollider) continue;
 
-        Vec3 pos = rigidBody.getPosition();
-
-        // Boundary
         if(c.type == CollisionType::BOUNDARY_COLLIDER) {
             if(auto* b = dynamic_cast<BoundaryCollider*>(c.otherCollider)) {
                 float dist = b->getBoundaryDistance();
                 const Vec3& center = b->getCenter();
-    
                 float localX = pos.x - center.x;
                 float localZ = pos.z - center.z;
-    
-                if(std::fabs(localX) > dist) pos.x = center.x + std::copysign(dist, localX);
-                if(std::fabs(localZ) > dist) pos.z = center.z + std::copysign(dist, localZ);
-    
-                Vec3 vel = rigidBody.getVelocity();
-                if(c.normal.x != 0.0f) vel.x = 0.0f;
-                if(c.normal.z != 0.0f) vel.z = 0.0f;
-                rigidBody.setVelocity(vel);
-                rigidBody.setPosition(pos);
+                if(std::fabs(localX) > dist) { pos.x = center.x + std::copysign(dist, localX); vel.x = 0; }
+                if(std::fabs(localZ) > dist) { pos.z = center.z + std::copysign(dist, localZ); vel.z = 0; }
             }
-
             continue;
         }
-        // Static
-        if(c.type == CollisionType::STATIC_COLLIDER) {
-            if(c.normal.x != 0) pos.x += c.normal.x * c.depth;
-            if(c.normal.z != 0) pos.z += c.normal.z * c.depth;
 
-            if(c.normal.y > 0.5f) {
-                float halfH = (bbox.maxY - bbox.minY) * 0.5f;
-                pos.y = c.otherWorldBox.maxY + halfH;
-                Vec3 v = rigidBody.getVelocity();
-                v.y = 0;
-                rigidBody.setVelocity(v);
-            }
+        if(c.type != CollisionType::STATIC_COLLIDER) continue;
 
-            rigidBody.setPosition(pos);
+        if(c.normal.x != 0 && c.depth > bestXDepth) {
+            bestXDepth = c.depth;
+            bestXNorm  = c.normal.x;
+        }
+        if(c.normal.z != 0 && c.depth > bestZDepth) {
+            bestZDepth = c.depth;
+            bestZNorm  = c.normal.z;
+        }
+        if(c.normal.y > 0.5f && c.otherWorldBox.maxY > groundY) {
+            groundY   = c.otherWorldBox.maxY;
+            groundHit = true;
         }
     }
+
+    const float maxCorrection = 1.0f;
+
+    if(bestXDepth > 0) { pos.x += bestXNorm * std::min(bestXDepth, maxCorrection); vel.x = 0; }
+    if(bestZDepth > 0) { pos.z += bestZNorm * std::min(bestZDepth, maxCorrection); vel.z = 0; }
+    if(groundHit) {
+        float halfH = (bbox.maxY - bbox.minY) * 0.5f;
+        pos.y = groundY + halfH;
+        vel.y = 0;
+    }
+
+    rigidBody.setVelocity(vel);
+    rigidBody.setPosition(pos);
 }
 
 void CollisionManager::resolveCollision(Collider& collider, std::vector<CollisionResult>& collisions) {

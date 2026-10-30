@@ -151,7 +151,7 @@ public:
     };
 
     StaticCollider(const BBox& bbox, std::string id, std::string type = "") :
-                    bbox(bbox), id(std::move(id)), type(std::move(type)), hasBBox(true) {};
+                    bbox(bbox), localBox(bbox), id(std::move(id)), type(std::move(type)), hasBBox(true) {};
 
     std::vector<Instance> instances;
     std::unordered_map<CellKey, std::vector<uint32_t>, CellHash> grid;
