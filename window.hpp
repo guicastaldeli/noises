@@ -16,8 +16,8 @@ private:
     #define APPLICATION_NAME "Noises"
     #define ENGINE_NAME "Vulkan"
 
-    const uint32_t WINDOW_WIDTH = 800;
-    const uint32_t WINDOW_HEIGHT = 600;
+    const uint32_t WINDOW_WIDTH = 954;
+    const uint32_t WINDOW_HEIGHT = 550;
 
     Main& main;
 

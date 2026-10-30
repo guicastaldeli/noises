@@ -9,6 +9,9 @@ Data::~Data() {};
  * Load Terrain
  */
 void Data::loadTerrain() {
+    noise.maxHeight = float(chunk.sizeZ);
+    noise.minHeight = 0.0f;
+
     heightmap = Heightmap::generateHeightmap(chunk.sizeX, chunk.sizeZ, noise);
     chunkData = Chunk::generateChunk(chunk, heightmap);
     
@@ -37,7 +40,7 @@ void Data::init() {
     noise.minHeight = 0.0f;
     noise.maxHeight = float(chunk.sizeY);
 
-    heightmap = Heightmap::generateHeightmap(chunk.sizeX, chunk.sizeZ, noise);
+    heightmap = Heightmap(chunk.sizeX, chunk.sizeZ);
     chunkData = Chunk::generateChunk(chunk, heightmap);
     
     hasTerrain = true;

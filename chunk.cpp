@@ -30,11 +30,13 @@ ChunkData Chunk::generateChunk(const ChunkParams& p, const Heightmap& heightmap)
                         c.at(x, y, z) = p.matSolid;
                     } 
                     break;
-                case ChunkType::Flat:
-                    for(int y = 0; y < hInt; ++y) {
+                case ChunkType::Flat: {
+                    int h = p.sizeY;
+                    for(int y = 0; y < h; ++y) {
                         c.at(x, y, z) = p.matSolid;
                     }
                     break;
+                }
                 case ChunkType::Heightmap:
                     for(int y = 0; y < hInt; ++y) {
                         c.at(x, y, z) = (y == hInt - 1) ? p.matSurface : p.matSolid;
@@ -52,7 +54,7 @@ ChunkData Chunk::generateChunk(const ChunkParams& p, const Heightmap& heightmap)
                     break;
                 }
                 case ChunkType::Cheese:
-                    for(int y = 0; y < c.sy; ++y) {
+                    for(int y = 0; y < hInt; ++y) {
                         c.at(x, y, z) = (dist(rng) < p.cheeseDensity) ? p.matSolid : 0;
                     }
                     break;

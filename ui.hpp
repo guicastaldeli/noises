@@ -96,9 +96,9 @@ public:
         {
             combo("Type", data.chunk.type);
 
-            ImGui::SliderInt("Size X", &data.chunk.sizeX, 1, 64);
-            ImGui::SliderInt("Size Y", &data.chunk.sizeY, 1, 128);
-            ImGui::SliderInt("Size Z", &data.chunk.sizeZ, 1, 64);
+            ImGui::SliderInt("Size X", &data.chunk.sizeX, 1, MAX_CHUNK_X_SIZE);
+            ImGui::SliderInt("Size Y", &data.chunk.sizeY, 1, MAX_CHUNK_Y_SIZE);
+            ImGui::SliderInt("Size Z", &data.chunk.sizeZ, 1, MAX_CHUNK_Z_SIZE);
 
             ImGui::Separator();
 
