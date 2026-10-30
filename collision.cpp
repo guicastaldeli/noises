@@ -1,5 +1,6 @@
 #include <collision.hpp>
 #include <camera.hpp>
+#include <iostream>
 
 // ---------------------------------------
 //
@@ -19,18 +20,71 @@ std::string StaticCollider::getType() const {
     return type;
 }
 
+// Get Cell Size
+float StaticCollider::getCellSize() const {
+    return cellSize;
+}
+
+// Set Cell Size
+void StaticCollider::setCellSize(float s) {
+    cellSize = s;
+}
+
+// Get Instances
+const std::vector<StaticCollider::Instance>& StaticCollider::getInstances() const {
+    return instances;
+}
+
+// Instance Count
+size_t StaticCollider::instanceCount() const {
+    return instances.size();
+}
+
 // Get BBox
 BBox StaticCollider::getBBox() const {
-    if(hasProv) return bboxProv();
-    if(hasPosition) {
-        return BBox(position.x - halfX, position.y - halfY, position.z - halfZ,
-                    position.x + halfX, position.y + halfY, position.z + halfZ);
+    return localBox;
+}
+
+// Cell Of
+StaticCollider::CellKey StaticCollider::cellOf(float x, float y, float z, float cell) {
+    return { (int)std::floor(x / cell),
+                (int)std::floor(y / cell),
+                (int)std::floor(z / cell) };
+}
+
+// World Box
+BBox StaticCollider::worldBox(const Instance& inst) const {
+    return BBox(inst.position.x + localBox.minX, inst.position.y + localBox.minY, inst.position.z + localBox.minZ,
+                inst.position.x + localBox.maxX, inst.position.y + localBox.maxY, inst.position.z + localBox.maxZ);
+}
+
+// Add Instance
+void StaticCollider::addInstance(uint32_t instId, const Vec3& worldPos) {
+    instances.push_back({ instId, worldPos });
+}
+
+// Clear Instances
+void StaticCollider::clearInstances() {
+    instances.clear();
+    grid.clear();
+}
+
+// Build Grid
+void StaticCollider::buildGrid() {
+    grid.clear();
+    for(uint32_t i = 0; i < instances.size(); ++i) {
+        BBox b = worldBox(instances[i]);
+        CellKey lo = cellOf(b.minX, b.minY, b.minZ, cellSize);
+        CellKey hi = cellOf(b.maxX, b.maxY, b.maxZ, cellSize);
+        for(int x = lo.x; x <= hi.x; ++x)
+        for(int y = lo.y; y <= hi.y; ++y)
+        for(int z = lo.z; z <= hi.z; ++z)
+            grid[{x,y,z}].push_back(i);
     }
-    return bbox;
 }
 
 // Calc Collision
-CollisionResult StaticCollider::calcCollision(const BBox& a, const BBox& b) const {
+CollisionResult StaticCollider::calcCollision(const BBox& a, const BBox& b, const Instance& inst, uint32_t idx) const {
     float xO = std::min(a.maxX, b.maxX) - std::max(a.minX, b.minX);
     float yO = std::min(a.maxY, b.maxY) - std::max(a.minY, b.minY);
     float zO = std::min(a.maxZ, b.maxZ) - std::max(a.minZ, b.minZ);
@@ -43,15 +97,35 @@ CollisionResult StaticCollider::calcCollision(const BBox& a, const BBox& b) cons
 
     return CollisionResult(true, n, m,
                         const_cast<StaticCollider*>(this),
-                        CollisionType::STATIC_COLLIDER);
+                        CollisionType::STATIC_COLLIDER, 
+                        b, inst.id);
 }
 
 // Check Collision
-CollisionResult StaticCollider::checkCollision(const BBox& other) const {
-    if(!visible) return {};
-    const BBox self = getBBox();
-    if(other.intersects(self)) return calcCollision(other, self);
-    return {};
+void StaticCollider::checkCollision(const BBox& other, std::vector<CollisionResult>& out) const {
+    if(instances.empty()) return;
+
+    CellKey lo = cellOf(other.minX, other.minY, other.minZ, cellSize);
+    CellKey hi = cellOf(other.maxX, other.maxY, other.maxZ, cellSize);
+
+    std::vector<uint32_t> c;
+    for(int x = lo.x; x <= hi.x; ++x)
+    for(int y = lo.y; y <= hi.y; ++y)
+    for(int z = lo.z; z <= hi.z; ++z) {
+        auto it = grid.find({x,y,z});
+        if(it == grid.end()) continue;
+        c.insert(c.end(), it->second.begin(), it->second.end());
+    }
+
+    std::sort(c.begin(), c.end());
+    c.erase(std::unique(c.begin(), c.end()), c.end());
+
+    for(uint32_t idx : c) {
+        const Instance& inst = instances[idx];
+        BBox wb = worldBox(inst);
+        if(!other.intersects(wb)) continue;
+        out.push_back(calcCollision(other, wb, inst, idx));
+    }
 }
 
 /*******************
@@ -182,7 +256,7 @@ static BBox fromCenter(const Vec3& c, const Vec3& s) {
 // Intersects
 bool BBox::intersects(const BBox& o) const {
     return (minX <= o.maxX && maxX >= o.minX) &&
-            (minY <- o.maxY && maxY >= o.minY) &&
+            (minY <= o.maxY && maxY >= o.minY) &&
             (minZ <= o.maxZ && maxZ >= o.minZ);
 }
 /**
@@ -241,19 +315,12 @@ std::vector<Collider*> CollisionManager::getColliders() {
 }
 
 /**
- * Remove Collider
+ * Rebuild
  */
-void CollisionManager::removeCollider(const std::string& id) {
-    colliders.erase(
-        std::remove_if(colliders.begin(), colliders.end(),
-                        [&](Collider* c) { return c->getId() == id; }),
-        colliders.end());
-    ownedColliders.erase(
-        std::remove_if(ownedColliders.begin(), ownedColliders.end(),
-                        [&](const std::unique_ptr<Collider>& c) { return c->getId() == id; }),
-        ownedColliders.end());
-    colliderIdSet.erase(id);
-    removedIds.push_back(id);
+void CollisionManager::build() {
+    for(Collider* c : colliders) {
+        if(c) c->build();
+    }
 }
 
 /**
@@ -293,21 +360,27 @@ void CollisionManager::set(uint32_t id, CollisionType type) {
     const std::string typeName = mesh.getType(id);
     if(typeName.empty()) return;
 
+    const std::string sid = typeName;
+    StaticCollider* sc = nullptr;
+
     switch(type) {
         // Static
         case CollisionType::STATIC_COLLIDER: {
-            const BBox& local = localBoxFor(typeName);
-            const Vec3 pos = mesh.getPosition(id);
-            BBox world(pos.x + local.minX, pos.y + local.minY, pos.z + local.minZ,
-                        pos.x + local.maxX, pos.y + local.maxY, pos.z + local.maxZ);
+            auto it = colliderByKey.find(sid);
+            if(it != colliderByKey.end()) {
+                sc = it->second;
+            } else {
+                const BBox& local = localBoxFor(typeName);
+                auto owned = std::make_unique<StaticCollider>(local, sid, typeName);
 
-            const std::string sid = std::to_string(id);
-            auto owned = std::make_unique<StaticCollider>(world, sid, std::to_string(id));
-            
-            Collider* raw = owned.get();
-            ownedColliders.push_back(std::move(owned));
-            colliders.push_back(raw);
-            colliderIdSet.insert(sid);
+                sc = owned.get();
+                ownedColliders.push_back(std::move(owned));
+                colliders.push_back(sc);
+                colliderByKey[sid] = sc;
+                colliderIdSet.insert(sid);
+            }
+
+            sc->addInstance(id, mesh.getPosition(id));
             break;
         }
         // Boundary
@@ -340,34 +413,21 @@ bool CollisionManager::hasRigidBody(const RigidBody& rigidBody) const {
 std::vector<CollisionResult> CollisionManager::checkCollision(const BBox& bbox) {
     std::vector<CollisionResult> results;
     
-    std::vector<Collider*> snapshot = colliders;
-    for(Collider* c : snapshot) {
+    for(Collider* c : colliders) {
         if(auto* b = dynamic_cast<BoundaryCollider*>(c)) {
             if(b->isActive()) {
-                Vec3 pos(
-                    (bbox.minX + bbox.maxX) * 0.5f,
-                    (bbox.minY + bbox.maxY) * 0.5f,
-                    (bbox.minZ + bbox.maxZ) * 0.5f
-                );
+                Vec3 pos((bbox.minX + bbox.maxX) * 0.5f,
+                        (bbox.minY + bbox.maxY) * 0.5f,
+                        (bbox.minZ + bbox.maxZ) * 0.5f);
                 if(b->isOutsideBoundary(pos)) {
-                    results.push_back(CollisionResult(
-                        true,
-                        b->getBoundaryNormal(pos),
-                        b->getBoundaryFar(pos),
-                        b,
+                    results.push_back(CollisionResult(true,
+                        b->getBoundaryNormal(pos), b->getBoundaryFar(pos), b,
                         CollisionType::BOUNDARY_COLLIDER
                     ));
                 }
             }
-        }
-    }
-    for(Collider* c : snapshot) {
-        if(auto* s = dynamic_cast<StaticCollider*>(c)) {
-            CollisionResult r = s->checkCollision(bbox);
-            if(r.collided) {
-                r.otherCollider = s;
-                results.push_back(r);
-            }
+        } else if(auto* s = dynamic_cast<StaticCollider*>(c)) {
+            s->checkCollision(bbox, results);
         }
     }
 
@@ -387,46 +447,46 @@ void CollisionManager::resolveCollision(RigidBody& rigidBody,
                 return b.depth < a.depth;
             });
 
-    for(const CollisionResult& collision : collisions) {
-        Collider* collider = collision.otherCollider;
-        if(!collider) continue;
+    for(const CollisionResult& c : collisions) {
+        if(!c.otherCollider) continue;
+
+        Vec3 pos = rigidBody.getPosition();
 
         // Boundary
-        if(auto* boundary = dynamic_cast<BoundaryCollider*>(collider)) {
-            Vec3 position = rigidBody.getPosition();
-
-            float dist = boundary->getBoundaryDistance();
-            const Vec3& center = boundary->getCenter();
-
-            float localX = position.x - center.x;
-            float localZ = position.z - center.z;
-
-            if(std::fabs(localX) > dist) position.x = center.x + std::copysign(dist, localX);
-            if(std::fabs(localZ) > dist) position.z = center.z + std::copysign(dist, localZ);
-            rigidBody.setPosition(position);
-
-            Vec3 velocity = rigidBody.getVelocity();
-            if(collision.normal.x != 0.0f) velocity.x = 0.0f;
-            if(collision.normal.z != 0.0f) velocity.z = 0.0f;
+        if(c.type == CollisionType::BOUNDARY_COLLIDER) {
+            if(auto* b = dynamic_cast<BoundaryCollider*>(c.otherCollider)) {
+                float dist = b->getBoundaryDistance();
+                const Vec3& center = b->getCenter();
+    
+                float localX = pos.x - center.x;
+                float localZ = pos.z - center.z;
+    
+                if(std::fabs(localX) > dist) pos.x = center.x + std::copysign(dist, localX);
+                if(std::fabs(localZ) > dist) pos.z = center.z + std::copysign(dist, localZ);
+    
+                Vec3 vel = rigidBody.getVelocity();
+                if(c.normal.x != 0.0f) vel.x = 0.0f;
+                if(c.normal.z != 0.0f) vel.z = 0.0f;
+                rigidBody.setVelocity(vel);
+                rigidBody.setPosition(pos);
+            }
 
             continue;
         }
         // Static
-        if(dynamic_cast<StaticCollider*>(collider)) {
-            Vec3 position = rigidBody.getPosition();
+        if(c.type == CollisionType::STATIC_COLLIDER) {
+            if(c.normal.x != 0) pos.x += c.normal.x * c.depth;
+            if(c.normal.z != 0) pos.z += c.normal.z * c.depth;
 
-            if(collision.depth > 0.0001f) {
-                position += collision.normal * collision.depth;
+            if(c.normal.y > 0.5f) {
+                float halfH = (bbox.maxY - bbox.minY) * 0.5f;
+                pos.y = c.otherWorldBox.maxY + halfH;
+                Vec3 v = rigidBody.getVelocity();
+                v.y = 0;
+                rigidBody.setVelocity(v);
             }
-            if(collision.normal.y > 0.5f) {
-                BBox cbox = collider->getBBox();
-                float halfHeight = (bbox.maxY - bbox.minY) * 0.5f;
-                position.y = cbox.maxY + halfHeight;
 
-                Vec3 velocity = rigidBody.getVelocity();
-                velocity.y = 0.0f;
-                rigidBody.setVelocity(velocity);
-            }
+            rigidBody.setPosition(pos);
         }
     }
 }
@@ -479,6 +539,15 @@ void CollisionManager::clear() {
     colliderIdSet.clear();
     removedIds.clear();
     localBoxCache.clear();
+}
+
+/**
+ * Clear Colliders
+ */
+void CollisionManager::clearColliders() {
+    for(auto& owned : ownedColliders) {
+        if(owned) owned->clearInstances();
+    }
 }
 /**
  * 

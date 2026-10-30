@@ -251,6 +251,8 @@ void Mesh::load(uint32_t id, const std::string& type) {
         idToType[id] = type;
     }
 
+    idToType[id] = type;
+    
     Transform& t = transforms.at(id);
     Mat4 model = t.GetModelMatrix();
 

@@ -65,14 +65,18 @@ public:
     float depth = 0.0f;
     Collider* otherCollider = nullptr;
     CollisionType type = CollisionType::STATIC_COLLIDER;
+    BBox otherWorldBox{};
+    uint32_t instanceId = 0;
 
     CollisionResult() = default;
     CollisionResult(bool collided, 
                     const Vec3& normal, float depth,
-                    Collider* other, CollisionType type) :
+                    Collider* other, CollisionType type,
+                    const BBox& box = {}, uint32_t instId = 0) :
                     collided(collided),
                     normal(normal), depth(depth),
-                    otherCollider(other), type(type) {};
+                    otherCollider(other), type(type),
+                    otherWorldBox(box), instanceId(instId) {};
 };
 /**
  * 
@@ -101,6 +105,9 @@ public:
 
     virtual RigidBody*  getRigidBody()                      { return nullptr; }
     virtual const RigidBody* getRigidBody() const           { return nullptr; }
+
+    virtual void clearInstances() {}
+    virtual void build() {}
 };
 /**
  * 
@@ -122,19 +129,53 @@ private:
     std::function<BBox()> bboxProv;
     std::string id, type;
     bool hasBBox = false, hasPosition = false, hasProv = false;
-
-    CollisionResult calcCollision(const BBox& a, const BBox& b) const;
+    BBox localBox;
 
 public:
+    struct Instance {
+        uint32_t id;
+        Vec3 position;
+    };
+
+    struct CellKey {
+        int x, y, z;
+        bool operator==(const CellKey& o) const { return x==o.x && y==o.y && z==o.z; }
+    };
+    struct CellHash {
+        size_t operator()(const CellKey& k) const {
+            size_t h = size_t(k.x) * 73856093u ^
+                        size_t(k.y) * 19349663u ^
+                        size_t(k.z) * 83492791u;
+            return h;
+        }
+    };
+
     StaticCollider(const BBox& bbox, std::string id, std::string type = "") :
                     bbox(bbox), id(std::move(id)), type(std::move(type)), hasBBox(true) {};
+
+    std::vector<Instance> instances;
+    std::unordered_map<CellKey, std::vector<uint32_t>, CellHash> grid;
+    float cellSize = 2.0f;
 
     BBox getBBox() const override;
     std::string getId() const override;
     std::string getType() const override;
+
+    void addInstance(uint32_t instId, const Vec3& worldPos);
+    const std::vector<Instance>& getInstances() const;
+    void clearInstances() override;
+    void build() override { buildGrid(); }
+    void buildGrid();
+    size_t instanceCount() const;
+
+    float getCellSize() const;
+    void setCellSize(float s);
     
-    
-    CollisionResult checkCollision(const BBox& other) const;
+    static CellKey cellOf(float x, float y, float z, float cell);
+    BBox worldBox(const Instance& inst) const;
+
+    CollisionResult calcCollision(const BBox& a, const BBox& b, const Instance& inst, uint32_t idx) const;
+    void checkCollision(const BBox& other, std::vector<CollisionResult>& out) const;
 };
 
 /*******************
@@ -193,6 +234,7 @@ private:
     std::vector<Entry> dynamicRigidBody;
     std::unordered_set<std::string> colliderIdSet;
     std::vector<std::string> removedIds;
+    std::unordered_map<std::string, StaticCollider*> colliderByKey;
 
     const BBox& localBoxFor(const std::string& type);
     
@@ -213,9 +255,10 @@ public:
     void resolveCollision(RigidBody& rigidBody, const BBox& bbox, std::vector<CollisionResult>& collisions);
 
     void update();
+    void build();
 
-    void removeCollider(const std::string& id);
     void clear();
+    void clearColliders();
 };
 /**
  * 
