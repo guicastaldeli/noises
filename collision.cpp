@@ -547,26 +547,57 @@ void CollisionManager::resolveCollision(Collider& collider, std::vector<Collisio
  * 
  */
 void CollisionManager::update() {
-    const std::vector<Collider*> colliderSnapshot = colliders;
-    for(Collider* collider : colliderSnapshot) {
+    const float MAX_DT = 0.05f;
+    const float MAX_STEP = 0.4f;
+
+    for(Collider* collider : std::vector<Collider*>(colliders)) {
         RigidBody* rigidBody = collider->getRigidBody();
         if(!rigidBody) continue;
-        rigidBody->update();
 
-        BBox bounds = collider->getBBox();
-        std::vector<CollisionResult> results = checkCollision(bounds);
-        resolveCollision(*collider, results);
+        float dt = tick.GetDeltaTime() * 0.001f;
+        if(dt < 0.0f) dt = 0.0f;
+        if(dt > MAX_DT) dt = MAX_DT;
+
+        Vec3 vel = rigidBody->getVelocity();
+        float speed = std::sqrt(vel.x*vel.x + vel.y*vel.y + vel.z*vel.z);
+        float dist = speed * dt;
+        int steps = std::max(1, (int)std::ceil(dist / MAX_STEP));
+    
+        for(int s = 0; s < steps; ++s) {
+            vel = rigidBody->getVelocity();
+            rigidBody->setPosition(rigidBody->getPosition() + vel * (dt / (float)steps));
+
+            BBox bounds;
+            bounds.setFromCenter(rigidBody->getPosition(), rigidBody->getSize());
+            std::vector<CollisionResult> results = checkCollision(bounds);
+            resolveCollision(*rigidBody, bounds, results);
+        }
     }
-    const std::vector<Entry> rigidBodySnapshot = dynamicRigidBody;
-    for(const Entry& entry : rigidBodySnapshot) {
+    for(const Entry& entry : std::vector<Entry>(dynamicRigidBody)) {
         RigidBody* rigidBody = entry.rigidBody;
-        rigidBody->update();
+        if(!rigidBody) continue;
 
-        BBox bounds;
-        bounds.setFromCenter(rigidBody->getPosition(), rigidBody->getSize());
+        float dt = tick.GetDeltaTime() * 0.001f;
+        if(dt < 0.0f) dt = 0.0f;
+        if(dt > MAX_DT) dt = MAX_DT;
 
-        std::vector<CollisionResult> results = checkCollision(bounds);
-        resolveCollision(*rigidBody, bounds, results);
+        Vec3 vel = rigidBody->getVelocity();
+        float speed = std::sqrt(vel.x*vel.x + vel.y*vel.y + vel.z*vel.z);
+        float dist  = speed * dt;
+        int steps = std::max(1, (int)std::ceil(dist / MAX_STEP));
+        int v = 64;
+        if(steps > v) steps = v;
+
+        for(int s = 0; s < steps; ++s) {
+            vel = rigidBody->getVelocity();
+            rigidBody->setPosition(rigidBody->getPosition() + vel * (dt / (float)steps));
+
+            BBox bounds;
+            bounds.setFromCenter(rigidBody->getPosition(), rigidBody->getSize());
+
+            std::vector<CollisionResult> results = checkCollision(bounds);
+            resolveCollision(*rigidBody, bounds, results);
+        }
     }
 }
 
