@@ -8,9 +8,9 @@
 #define CHUNK_X_SIZE 30
 #define CHUNK_Y_SIZE 1
 #define CHUNK_Z_SIZE 30
-#define MAX_CHUNK_X_SIZE 64
+#define MAX_CHUNK_X_SIZE 128
 #define MAX_CHUNK_Y_SIZE 128
-#define MAX_CHUNK_Z_SIZE 64
+#define MAX_CHUNK_Z_SIZE 128
 
 /************* 
  * 
