@@ -155,7 +155,7 @@ public:
 
     std::vector<Instance> instances;
     std::unordered_map<CellKey, std::vector<uint32_t>, CellHash> grid;
-    float cellSize = 2.0f;
+    float cellSize = 1.0f;
 
     BBox getBBox() const override;
     std::string getId() const override;

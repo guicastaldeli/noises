@@ -81,7 +81,7 @@ public:
     float POS_Y = 90.0f;
     float POS_Z = 6.0f;
 
-    float MOVE_SPEED = 60.0f;
+    float MOVE_SPEED = 10.0f;
     float MOUSE_SENSV = 0.0025f;
 
     Vec3 rigidBodySize{ 1.0f, 1.0f, 1.0f };
