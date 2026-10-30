@@ -42,7 +42,7 @@ struct ChunkParams {
     float waveAmplitude = 4.0f;
     float waveFrequency = 0.5f;
     float cheeseDensity = 0.3f;
-    float caveThreshold = 2.0f;
+    float caveThreshold = 0.2f;
 
     // material ids (0 = air)
     uint8_t matSolid = 1;
