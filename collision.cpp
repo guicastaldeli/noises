@@ -88,12 +88,27 @@ CollisionResult StaticCollider::calcCollision(const BBox& a, const BBox& b, cons
     float xO = std::min(a.maxX, b.maxX) - std::max(a.minX, b.minX);
     float yO = std::min(a.maxY, b.maxY) - std::max(a.minY, b.minY);
     float zO = std::min(a.maxZ, b.maxZ) - std::max(a.minZ, b.minZ);
+
+    if(xO <= 0.0 || yO <= 0.0f || zO <= 0.0f) {
+        return CollisionResult(false, Vec3(0.0f, 0.0f, 0.0f), 0.0f,
+                               const_cast<StaticCollider*>(this),
+                               CollisionType::STATIC_COLLIDER,
+                               b, inst.id);
+    }
     
     float m = std::min({ xO, yO, zO });
+
+    float acx = (a.minX + a.maxX) * 0.5f;
+    float acy = (a.minY + a.maxY) * 0.5f;
+    float acz = (a.minZ + a.maxZ) * 0.5f;
+    float bcx = (b.minX + b.maxX) * 0.5f;
+    float bcy = (b.minY + b.maxY) * 0.5f;
+    float bcz = (b.minZ + b.maxZ) * 0.5f;
+
     Vec3 n{ 0, 0, 0 };
-    if(m == xO)         n.x = (a.maxX > b.maxX) ? 1.0f : -1.0f;
-    else if(m == yO)    n.y = (a.maxY > b.maxY) ? 1.0f : -1.0f;
-    else                n.z = (a.maxZ > b.maxZ) ? 1.0f : -1.0f;
+    if(m == xO)         n.x = (acx > bcx) ? 1.0f : -1.0f;
+    else if(m == yO)    n.y = (acy > bcy) ? 1.0f : -1.0f;
+    else                n.z = (acz > bcz) ? 1.0f : -1.0f;
 
     return CollisionResult(true, n, m,
                         const_cast<StaticCollider*>(this),
@@ -345,7 +360,7 @@ const BBox& CollisionManager::localBoxFor(const std::string& type) {
 
     if(xMax < xMin) {
         xMin = yMin = zMin = 0;
-        xMax = xMax = zMax = 0;
+        xMax = yMax = zMax = 0;
     }
 
     BBox box(xMin, yMin, zMin, xMax, yMax, zMax);
@@ -447,14 +462,16 @@ void CollisionManager::resolveCollision(RigidBody& rigidBody,
                 return b.depth < a.depth;
             });
 
+    bool hasStatic = false;
+
     for(const CollisionResult& c : collisions) {
         if(!c.otherCollider) continue;
-
-        Vec3 pos = rigidBody.getPosition();
 
         // Boundary
         if(c.type == CollisionType::BOUNDARY_COLLIDER) {
             if(auto* b = dynamic_cast<BoundaryCollider*>(c.otherCollider)) {
+                Vec3 pos = rigidBody.getPosition();
+                
                 float dist = b->getBoundaryDistance();
                 const Vec3& center = b->getCenter();
     
@@ -475,17 +492,39 @@ void CollisionManager::resolveCollision(RigidBody& rigidBody,
         }
         // Static
         if(c.type == CollisionType::STATIC_COLLIDER) {
-            if(c.normal.x != 0) pos.x += c.normal.x * c.depth;
-            if(c.normal.z != 0) pos.z += c.normal.z * c.depth;
+            if(hasStatic) continue;
+            hasStatic = true;
 
-            if(c.normal.y > 0.5f) {
-                float halfH = (bbox.maxY - bbox.minY) * 0.5f;
-                pos.y = c.otherWorldBox.maxY + halfH;
-                Vec3 v = rigidBody.getVelocity();
-                v.y = 0;
-                rigidBody.setVelocity(v);
+            Vec3 pos = rigidBody.getPosition();
+            Vec3 vel = rigidBody.getVelocity();
+            const Vec3 size = rigidBody.getSize();
+
+            for(int iter = 0; iter < 8; ++iter) {
+                BBox cur;
+                cur.setFromCenter(pos, size);
+
+                std::vector<CollisionResult> hits = checkCollision(cur);
+
+                const CollisionResult* b = nullptr;
+                for(auto& h : hits) {
+                    if(h.type != CollisionType::STATIC_COLLIDER) continue;
+                    if(!h.otherCollider) continue;
+                    if(h.depth <= 0.0f) continue;
+                    if(!b || h.depth < b->depth) b = &h;
+                }
+
+                if(!b) break;
+
+                pos.x += b->normal.x * b->depth;
+                pos.y += b->normal.y * b->depth;
+                pos.z += b->normal.z * b->depth;
+
+                if(std::fabs(b->normal.x) > 0.5f) vel.x = 0.0f;
+                if(std::fabs(b->normal.y) > 0.5f) vel.y = 0.0f;
+                if(std::fabs(b->normal.z) > 0.5f) vel.z = 0.0f;
             }
 
+            rigidBody.setVelocity(vel);
             rigidBody.setPosition(pos);
         }
     }
@@ -497,7 +536,8 @@ void CollisionManager::resolveCollision(Collider& collider, std::vector<Collisio
     RigidBody* rigidBody = collider.getRigidBody();
     if(!rigidBody) return;
 
-    const BBox bounds = collider.getBBox();
+    BBox bounds;
+    bounds.setFromCenter(rigidBody->getPosition(), rigidBody->getSize());
     resolveCollision(*rigidBody, bounds, collisions);
 }
 
