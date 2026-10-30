@@ -246,9 +246,15 @@ void Camera::set() {
 void Camera::move() {
     Vec3 move(0.0f, 0.0f, 0.0f);
 
+    Vec3 fwd(forward.x, 0.0f, forward.z);
+    float fl = std::sqrt(fwd.x*fwd.x + fwd.z*fwd.z);
+    float v = 1e-6f;
+    if(fl > v)  { fwd.x /= fl; fwd.z /= fl; }
+    else        { fwd = Vec3(0.0f, 0.0f, 0.0f); }
+
     float f = 1.0f;
-    if(input->down(Input::Bindings::FORWARD))   move = move + forward;
-    if(input->down(Input::Bindings::BACKWARD))  move = move - forward;
+    if(input->down(Input::Bindings::FORWARD))   move = move + fwd;
+    if(input->down(Input::Bindings::BACKWARD))  move = move - fwd;
     if(input->down(Input::Bindings::RIGHT))     move = move + right;
     if(input->down(Input::Bindings::LEFT))      move = move - right;
     if(input->down(Input::Bindings::UP))        move.y += f;
