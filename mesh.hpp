@@ -18,6 +18,7 @@
 #include <utils/vec3.hpp>
 #include <utils/mat4.hpp>
 #include <utils/transform.hpp>
+#include <texture.hpp>
 #include <array>
 #include <cstddef>
 
@@ -140,6 +141,7 @@ private:
         uint32_t id;
         Mat4 model;
         std::string type;
+        uint32_t texId = 0;
     };
     /**
      * 
@@ -164,6 +166,7 @@ private:
     std::unordered_map<std::string, BufferData> bufferMeshes;
     std::unordered_map<uint32_t, Transform>     transforms;
     std::unordered_map<uint32_t, std::string>   idToType;
+    std::unordered_map<uint32_t, uint32_t>      textureIds;
 
     VkDevice device;
     VkCommandPool commandPool;
@@ -187,6 +190,7 @@ private:
 
     Main& main;
     Camera& camera;
+    TextureLoader* texture = nullptr;
 
     const Transform& getTransform(uint32_t id) const;
     const BufferData& getBufferData(const std::string& type) const;
@@ -291,6 +295,10 @@ public:
     ~Mesh();
 
     inline static constexpr size_t kVertexStride = sizeof(Vertex) / sizeof(float);
+
+    const TextureLoader* getTextureLoader() const;
+    void setTexture(uint32_t id, uint32_t texId);
+    uint32_t getTexture(uint32_t id) const;
 
     const std::vector<float>* getVertices(const std::string type) const;
     std::string getType(uint32_t id) const;
@@ -488,16 +496,20 @@ public:
 
         static VkVertexInputBindingDescription instanceBinding{};
         instanceBinding.binding = 1;
-        instanceBinding.stride = sizeof(Mat4);
+        instanceBinding.stride = sizeof(Mat4) + sizeof(uint32_t);
         instanceBinding.inputRate = VK_VERTEX_INPUT_RATE_INSTANCE;
 
-        static std::array<VkVertexInputAttributeDescription, 4> instanceAttr{};
+        static std::array<VkVertexInputAttributeDescription, 5> instanceAttr{};
         for(int i = 0; i < 4; i++) {
             instanceAttr[i].binding = 1;
             instanceAttr[i].location = 4 + i;
             instanceAttr[i].format = VK_FORMAT_R32G32B32A32_SFLOAT;
             instanceAttr[i].offset = sizeof(float) * 4 * i;
         }
+        instanceAttr[4].binding = 1;
+        instanceAttr[4].location = 8;
+        instanceAttr[4].format = VK_FORMAT_R32_UINT;
+        instanceAttr[4].offset = sizeof(Mat4);
 
         static std::array<VkVertexInputBindingDescription, 2> bindings = {
             bindingDesc,
@@ -505,7 +517,7 @@ public:
         };
         static std::array<VkVertexInputAttributeDescription, 8> allAttrs{};
         for(int i = 0; i < 4; i++) allAttrs[i] = attrDesc[i];
-        for(int i = 0; i < 4; i++) allAttrs[4+i] = instanceAttr[i];
+        for(int i = 0; i < 5; i++) allAttrs[4+i] = instanceAttr[i];
 
         VkPipelineVertexInputStateCreateInfo info{};
         info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;

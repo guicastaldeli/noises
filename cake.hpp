@@ -78,7 +78,10 @@ public:
     VkRenderPass renderPass = VK_NULL_HANDLE;
     VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
     VkPipeline graphicsPipeline = VK_NULL_HANDLE;
-    const std::vector<const char*> deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+    const std::vector<const char*> deviceExtensions = { 
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+        VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME 
+    };
     
     VkQueue graphicsQueue = VK_NULL_HANDLE;
     VkQueue presentQueue = VK_NULL_HANDLE;
@@ -178,7 +181,19 @@ public:
             swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
         }
 
-        return indices.isComplete() && extensionsSupported && swapChainAdequate;
+        VkPhysicalDeviceDescriptorIndexingFeatures idxFeat{};
+        idxFeat.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES;
+        VkPhysicalDeviceFeatures2 feat2{};
+        feat2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+        feat2.pNext = &idxFeat;
+        vkGetPhysicalDeviceFeatures2(device, &feat2);
+
+        bool bindless = idxFeat.runtimeDescriptorArray &&
+                        idxFeat.shaderSampledImageArrayNonUniformIndexing &&
+                        idxFeat.descriptorBindingSampledImageUpdateAfterBind &&
+                        idxFeat.descriptorBindingPartiallyBound;
+        
+        return indices.isComplete() && extensionsSupported && swapChainAdequate && bindless;
     }
 
     bool checkDeviceExtensionSupport(VkPhysicalDevice device) {
@@ -245,8 +260,17 @@ public:
         }
 
         VkPhysicalDeviceFeatures deviceFeatures{};
+        VkPhysicalDeviceDescriptorIndexingFeatures indexingFeatures{};
+        indexingFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES;
+        indexingFeatures.runtimeDescriptorArray =  VK_TRUE;
+        indexingFeatures.shaderSampledImageArrayNonUniformIndexing = VK_TRUE;
+        indexingFeatures.descriptorBindingSampledImageUpdateAfterBind = VK_TRUE;
+        indexingFeatures.descriptorBindingPartiallyBound = VK_TRUE;
+        indexingFeatures.descriptorBindingUpdateUnusedWhilePending = VK_TRUE;
+
         VkDeviceCreateInfo createInfo{};
         createInfo.sType                        = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+        createInfo.pNext                        = &indexingFeatures;
         createInfo.queueCreateInfoCount         = static_cast<uint32_t>(queueCreateInfos.size());
         createInfo.pQueueCreateInfos            = queueCreateInfos.data();
         createInfo.pEnabledFeatures             = &deviceFeatures;

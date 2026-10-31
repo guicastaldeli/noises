@@ -141,11 +141,14 @@ void Main::Create() {
     dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
     dynamicState.pDynamicStates = dynamicStates.data();
     
-    VkDescriptorSetLayout dsLayout = mesh->getDescriptorSetLayout();
+    VkDescriptorSetLayout layouts[] = {
+        mesh->getDescriptorSetLayout(),
+        mesh->getTexture()->getDescriptorSetLayout()
+    };
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipelineLayoutInfo.setLayoutCount = 1;
-    pipelineLayoutInfo.pSetLayouts = &dsLayout;
+    pipelineLayoutInfo.pSetLayouts = layouts;
     if(vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
         throw std::runtime_error("failed to create pipeline layout!");
     }

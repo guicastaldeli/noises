@@ -12,8 +12,34 @@
 
 Mesh::Mesh(Main& main, Camera& camera) : 
     main(main),
-    camera(camera) {};
-Mesh::~Mesh() {};
+    camera(camera) {
+    texture = new TextureLoader(main);
+};
+Mesh::~Mesh() {
+    delete texture;     texture = nullptr;
+};
+
+/**
+ * Get Texture Loader
+ */
+const TextureLoader* Mesh::getTextureLoader() const {
+    return texture;
+}
+
+/**
+ * Set Texture
+ */
+void Mesh::setTexture(uint32_t id, uint32_t texId) {
+    textureIds[id] = texId;
+}
+
+/**
+ * Get Texture
+ */
+uint32_t Mesh::getTexture(uint32_t id) const {
+    auto it = textureIds.find(id);
+    return it == textureIds.end() ? 0u : it->second;
+}
 
 /**
  * Get Vertices
@@ -283,7 +309,12 @@ void Mesh::render() {
 
     std::memcpy(uniformBuffersMapped[main.currentFrame], &ubo, sizeof(ubo));
 
-    std::unordered_map<std::string, std::vector<Mat4>> byType;
+    struct DataInstance {
+        Mat4 model;
+        uint32_t texId;
+    };
+
+    std::unordered_map<std::string, std::vector<DataInstance>> byType;
     for(auto& entry : pendingInstances) {
         auto tit = transforms.find(entry.id);
         if(tit == transforms.end()) continue;
@@ -295,15 +326,21 @@ void Mesh::render() {
             transported.m[r][c] = model.m[c][r];
         }
 
-        byType[entry.type].push_back(transported);
+        DataInstance di{};
+        di.model = transported;
+        di.texId = getTexture(entry.id);
+        byType[entry.type].push_back(di);
     }
 
     VkCommandBuffer cmd = main.getCurrentCommandBuffer();
-    VkDescriptorSet ds = descriptorSets[main.currentFrame];
+    VkDescriptorSet sets[] = {
+        descriptorSets[main.currentFrame],
+        texture->getDescriptorSet(main.currentFrame)
+    };
     vkCmdBindDescriptorSets(cmd,
                             VK_PIPELINE_BIND_POINT_GRAPHICS,
                             main.pipelineLayout,
-                            0, 1, &ds,
+                            0, 2, sets,
                             0, nullptr);
     
     for(auto& [type, models] : byType) {
@@ -341,6 +378,8 @@ void Mesh::init() {
     createUniformBuffers();
     createDescriptorPool();
     createDescriptorSets();
+
+    texture->init(main.MAX_FRAMES_IN_FLIGHT);
 }
 
 /**
@@ -372,6 +411,8 @@ void Mesh::cleanup() {
     }
     transforms.clear();
     idToType.clear();
+
+    texture->cleanup();
 }
 
 /**
