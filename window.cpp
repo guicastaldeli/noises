@@ -24,7 +24,7 @@ void Window::set() {
     appInfo.applicationVersion              = VK_MAKE_VERSION(1, 0, 0);
     appInfo.pEngineName                     = ENGINE_NAME;
     appInfo.engineVersion                   = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.apiVersion                      = VK_API_VERSION_1_0;
+    appInfo.apiVersion                      = VK_API_VERSION_1_2;
 
     VkInstanceCreateInfo createInfo{};
     createInfo.sType                        = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;

@@ -22,6 +22,9 @@ void Terrain::upload(const ChunkData& chunkData) {
     spawnedIds.clear();
     if(trackCollision) collision.clearColliders();
 
+    TextureResult tex = mesh.getTextureLoader()->load("test.jpg");
+    uint32_t texId = tex.texId;
+
     for(int z = 0; z < chunkData.sz; ++z)
     for(int y = 0; y < chunkData.sy; ++y)
     for(int x = 0; x < chunkData.sx; ++x) {
@@ -35,6 +38,7 @@ void Terrain::upload(const ChunkData& chunkData) {
                     origin.y + float(y),
                     origin.z + float(z));
         mesh.load(id, MESH_TYPE);
+        mesh.setTexture(id, texId);
         if(trackCollision) {
             collision.set(id, CollisionType::STATIC_COLLIDER);
         }
@@ -67,9 +71,11 @@ void Terrain::update() {
  * 
  */
 void Terrain::render() {
-    /*for(int i = 0; i < 10; i++) {
+    /*uint32_t texId = mesh.getTextureLoader()->load(1, "test.jpg");
+    for(int i = 0; i < 5; i++) {
         mesh.setPosition(i, i * -1.5f, 0.0f, 0.0f);
         mesh.load(i, "cube");
+        mesh.setTexture(i, texId);
     }*/
 }
 

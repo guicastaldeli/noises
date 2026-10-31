@@ -22,7 +22,7 @@ Mesh::~Mesh() {
 /**
  * Get Texture Loader
  */
-const TextureLoader* Mesh::getTextureLoader() const {
+TextureLoader* Mesh::getTextureLoader() const {
     return texture;
 }
 
@@ -312,7 +312,11 @@ void Mesh::render() {
     struct DataInstance {
         Mat4 model;
         uint32_t texId;
+        uint32_t hasTexture;
     };
+    static_assert(sizeof(DataInstance) == sizeof(Mat4) + 
+                    sizeof(uint32_t) * 2, 
+                    "DataInstance layout must match vertex input stride");
 
     std::unordered_map<std::string, std::vector<DataInstance>> byType;
     for(auto& entry : pendingInstances) {
@@ -329,6 +333,7 @@ void Mesh::render() {
         DataInstance di{};
         di.model = transported;
         di.texId = getTexture(entry.id);
+        di.hasTexture = (textureIds.count(entry.id) > 0) ? 1u : 0u;
         byType[entry.type].push_back(di);
     }
 
@@ -344,12 +349,12 @@ void Mesh::render() {
                             0, nullptr);
     
     for(auto& [type, models] : byType) {
-        VkDeviceSize size = sizeof(Mat4) * models.size();
+        VkDeviceSize size = sizeof(DataInstance) * models.size();
         setInstanceBuffer(size);
 
         void* data;
         vkMapMemory(device, instanceBufferMemory, 0, size, 0, &data);
-        memcpy(data, models.data(), size);
+        memcpy(data, models.data(), (size_t)size);
         vkUnmapMemory(device, instanceBufferMemory);
 
         const BufferData& bufferData = bufferMeshes.at(type);
@@ -386,6 +391,13 @@ void Mesh::init() {
  * Cleanup
  */
 void Mesh::cleanup() {
+    if(instanceBuffer != VK_NULL_HANDLE) {
+        vkDestroyBuffer(device, instanceBuffer, nullptr);
+        vkFreeMemory(device, instanceBufferMemory, nullptr);
+        instanceBuffer = VK_NULL_HANDLE;
+        instanceBufferMemory = VK_NULL_HANDLE;
+    }
+    
     for(auto& pair : bufferMeshes) {
         vkDestroyBuffer(device, pair.second.vertexBuffer, nullptr);
         vkFreeMemory(device, pair.second.vertexBufferMemory, nullptr);

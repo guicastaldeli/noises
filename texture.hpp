@@ -5,8 +5,15 @@
 #include <vector>
 #include <unordered_map>
 #include <cstdint>
+#include <utility>
 
 class Main;
+
+struct TextureResult {
+    uint32_t meshId;
+    uint32_t texId;
+};
+
 class TextureLoader {
 private:
     struct Texture {
@@ -31,6 +38,7 @@ private:
     std::unordered_map<uint32_t, uint32_t> toTexId;
     std::unordered_map<uint32_t, Texture> textures;
 
+    uint32_t nextMeshId = 1;
     uint32_t maxTextures = 0;
     uint32_t nextSlot = 0;
 
@@ -42,6 +50,8 @@ public:
     VkDescriptorSet getDescriptorSet(uint32_t frame) const { return descriptorSets[frame]; }
     
     uint32_t load(uint32_t id, const std::string& path);
+    TextureResult load(const std::string& path);
+    
     void init(uint32_t frames);
 
     void cleanup();

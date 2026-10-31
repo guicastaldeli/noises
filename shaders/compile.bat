@@ -31,7 +31,7 @@ for %%e in (vert frag comp geom tesc tese) do (
         if exist "%%~f" (
             set "OUT=%OUT_DIR%\%%~e.spv"
             echo [shaders] %%~nxf -^> !OUT!
-            "%GLSLC%" "%%~f" -o "!OUT!"
+            "%GLSLC%" "%%~f" -o "!OUT!" --target-env=vulkan1.2
             if errorlevel 1 set "FAIL=1"
         )
     )

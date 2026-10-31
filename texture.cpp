@@ -33,6 +33,9 @@ uint32_t findMemoryType(VkPhysicalDevice physicalDevice,
  * 
  */
 uint32_t TextureLoader::load(uint32_t id, const std::string& path) {
+    auto it = toTexId.find(id);
+    if(it != toTexId.end()) return it->second;
+    
     int w = 0, h = 0, ch = 0;
     stbi_uc* pixels = stbi_load(path.c_str(), &w, &h, &ch, STBI_rgb_alpha);
     if(!pixels) {
@@ -227,7 +230,7 @@ uint32_t TextureLoader::load(uint32_t id, const std::string& path) {
     VkImageView view = VK_NULL_HANDLE;
     {
         VkImageViewCreateInfo vi{};
-        vi.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+        vi.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
         vi.image = image;
         vi.viewType = VK_IMAGE_VIEW_TYPE_2D;
         vi.format = VK_FORMAT_R8G8B8A8_SRGB;
@@ -353,7 +356,7 @@ void TextureLoader::init(uint32_t frames) {
 
     VkDescriptorPoolSize poolSize{};
     poolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    poolSize.descriptorCount = maxTextures;
+    poolSize.descriptorCount = maxTextures * frames;
 
     VkDescriptorPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -378,6 +381,12 @@ void TextureLoader::init(uint32_t frames) {
     if(vkAllocateDescriptorSets(device, &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
         throw std::runtime_error("TextureLoader: failed to allocate descriptor sets");
     }
+}
+
+TextureResult TextureLoader::load(const std::string& path) {
+    uint32_t generatedId = nextMeshId++;
+    uint32_t texId = load(generatedId, path);
+    return { generatedId, texId };
 }
 
 /**
