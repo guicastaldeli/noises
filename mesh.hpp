@@ -242,49 +242,171 @@ private:
             });
             // Cube
             m.emplace("cube", MeshData{
-            //Vertices
-            {
-                -0.5f, -0.5f,  0.5f,   0,0,1,   0,0,   1,0,0,
-                0.5f, -0.5f,  0.5f,   0,0,1,   1,0,   1,0,0,
-                0.5f,  0.5f,  0.5f,   0,0,1,   1,1,   1,0,0,
-                -0.5f,  0.5f,  0.5f,   0,0,1,   0,1,   1,0,0,
+                // Vertices
+                {
+                    -0.5f, -0.5f,  0.5f,   0,0,1,   0,0,   1,0,0,
+                    0.5f, -0.5f,  0.5f,   0,0,1,   1,0,   1,0,0,
+                    0.5f,  0.5f,  0.5f,   0,0,1,   1,1,   1,0,0,
+                    -0.5f,  0.5f,  0.5f,   0,0,1,   0,1,   1,0,0,
 
-                0.5f, -0.5f, -0.5f,   0,0,-1,  0,0,   0,0,1,
-                -0.5f, -0.5f, -0.5f,   0,0,-1,  1,0,   0,0,1,
-                -0.5f,  0.5f, -0.5f,   0,0,-1,  1,1,   0,0,1,
-                0.5f,  0.5f, -0.5f,   0,0,-1,  0,1,   0,0,1,
+                    0.5f, -0.5f, -0.5f,   0,0,-1,  0,0,   0,0,1,
+                    -0.5f, -0.5f, -0.5f,   0,0,-1,  1,0,   0,0,1,
+                    -0.5f,  0.5f, -0.5f,   0,0,-1,  1,1,   0,0,1,
+                    0.5f,  0.5f, -0.5f,   0,0,-1,  0,1,   0,0,1,
 
-                -0.5f,  0.5f,  0.5f,   0,1,0,   0,0,   0,1,0,
-                0.5f,  0.5f,  0.5f,   0,1,0,   1,0,   0,1,0,
-                0.5f,  0.5f, -0.5f,   0,1,0,   1,1,   0,1,0,
-                -0.5f,  0.5f, -0.5f,   0,1,0,   0,1,   0,1,0,
+                    -0.5f,  0.5f,  0.5f,   0,1,0,   0,0,   0,1,0,
+                    0.5f,  0.5f,  0.5f,   0,1,0,   1,0,   0,1,0,
+                    0.5f,  0.5f, -0.5f,   0,1,0,   1,1,   0,1,0,
+                    -0.5f,  0.5f, -0.5f,   0,1,0,   0,1,   0,1,0,
 
-                -0.5f, -0.5f, -0.5f,   0,-1,0,  0,0,   1,1,0,
-                0.5f, -0.5f, -0.5f,   0,-1,0,  1,0,   1,1,0,
-                0.5f, -0.5f,  0.5f,   0,-1,0,  1,1,   1,1,0,
-                -0.5f, -0.5f,  0.5f,   0,-1,0,  0,1,   1,1,0,
+                    -0.5f, -0.5f, -0.5f,   0,-1,0,  0,0,   1,1,0,
+                    0.5f, -0.5f, -0.5f,   0,-1,0,  1,0,   1,1,0,
+                    0.5f, -0.5f,  0.5f,   0,-1,0,  1,1,   1,1,0,
+                    -0.5f, -0.5f,  0.5f,   0,-1,0,  0,1,   1,1,0,
 
-                0.5f, -0.5f,  0.5f,   1,0,0,   0,0,   0,1,1,
-                0.5f, -0.5f, -0.5f,   1,0,0,   1,0,   0,1,1,
-                0.5f,  0.5f, -0.5f,   1,0,0,   1,1,   0,1,1,
-                0.5f,  0.5f,  0.5f,   1,0,0,   0,1,   0,1,1,
+                    0.5f, -0.5f,  0.5f,   1,0,0,   0,0,   0,1,1,
+                    0.5f, -0.5f, -0.5f,   1,0,0,   1,0,   0,1,1,
+                    0.5f,  0.5f, -0.5f,   1,0,0,   1,1,   0,1,1,
+                    0.5f,  0.5f,  0.5f,   1,0,0,   0,1,   0,1,1,
 
-                -0.5f, -0.5f, -0.5f,  -1,0,0,   0,0,   1,0,1,
-                -0.5f, -0.5f,  0.5f,  -1,0,0,   1,0,   1,0,1,
-                -0.5f,  0.5f,  0.5f,  -1,0,0,   1,1,   1,0,1,
-                -0.5f,  0.5f, -0.5f,  -1,0,0,   0,1,   1,0,1,
-            },
-            // Indices
-            {
-                0,1,2, 0,2,3,  4,5,6, 4,6,7,
-                8,9,10, 8,10,11,  12,13,14, 12,14,15,
-                16,17,18, 16,18,19,  20,21,22, 20,22,23
-            },
-            // Min Bounds
-            Vec3(-0.5f, -0.5f, -0.5f),
-            // Max Bounds
-            Vec3(0.5f, 0.5f, 0.5f)
-        });
+                    -0.5f, -0.5f, -0.5f,  -1,0,0,   0,0,   1,0,1,
+                    -0.5f, -0.5f,  0.5f,  -1,0,0,   1,0,   1,0,1,
+                    -0.5f,  0.5f,  0.5f,  -1,0,0,   1,1,   1,0,1,
+                    -0.5f,  0.5f, -0.5f,  -1,0,0,   0,1,   1,0,1,
+                },
+                // Indices
+                {
+                    0,1,2, 0,2,3,  4,5,6, 4,6,7,
+                    8,9,10, 8,10,11,  12,13,14, 12,14,15,
+                    16,17,18, 16,18,19,  20,21,22, 20,22,23
+                },
+                // Min Bounds
+                Vec3(-0.5f, -0.5f, -0.5f),
+                // Max Bounds
+                Vec3(0.5f, 0.5f, 0.5f)
+            });
+            // Sphere
+            m.emplace("sphere", []() -> MeshData {
+                const int subdivisions = 4;
+                const float t = (1.0f + std::sqrt(5.0f)) / 2.0f;
+
+                auto norm = [](Vec3 v) {
+                    float l = std::sqrt(v.x*v.x + v.y*v.y + v.z*v.z);
+                    return Vec3(v.x/l, v.y/l, v.z/l);
+                };
+
+                std::vector<Vec3> positions = {
+                    norm(Vec3(-1, t, 0)),   norm(Vec3(1, t, 0)),
+                    norm(Vec3(-1, -t, 0)),  norm(Vec3(1, -t, 0)),
+                    norm(Vec3(0, -1, t)),   norm(Vec3(0, 1, t)),
+                    norm(Vec3(0, -1, -t)),  norm(Vec3(0, 1, -t)),
+                    norm(Vec3(t, 0, -1)),   norm(Vec3(t, 0, 1)),
+                    norm(Vec3(-t, 0, -1)),  norm(Vec3(-t, 0, 1))
+                };
+                std::vector<uint32_t> indices = {
+                    0, 11, 5,   0, 5, 1,    0, 1, 7,    0, 7, 10,   0, 10, 11,
+                    1, 5, 9,    5, 11, 4,   11, 10, 2,  10, 7, 6,   7, 1, 8,
+                    3, 9, 4,    3, 4, 2,    3, 2, 6,    3, 6, 8,    3, 8, 9,
+                    4, 9, 5,    2, 4, 11,   6, 2, 10,   8, 6, 7,    9, 8, 1
+                };
+
+                std::map<std::pair<uint32_t, uint32_t>, uint32_t> midpointCache;
+                auto getMidpoint = [&](uint32_t i1, uint32_t i2) -> uint32_t {
+                    auto key = i1 < i2 ? std::make_pair(i1, i2) : std::make_pair(i2, i1);
+                    
+                    auto it = midpointCache.find(key);
+                    if(it != midpointCache.end()) return it->second;
+                
+                    Vec3 a = positions[i1];
+                    Vec3 b = positions[i2];
+                    Vec3 mid = norm(Vec3(a.x + b.x, a.y + b.y, a.z + b.z));
+
+                    uint32_t idx = static_cast<uint32_t>(positions.size());
+                    positions.push_back(mid);
+
+                    midpointCache[key] = idx;
+                    return idx;
+                };
+
+                for(int i = 0; i < subdivisions; ++i) {
+                    std::vector<uint32_t> newIndices;
+
+                    for(size_t j = 0; j < indices.size(); j += 3) {
+                        uint32_t v1 = indices[j];
+                        uint32_t v2 = indices[j+1];
+                        uint32_t v3 = indices[j+2];
+
+                        uint32_t a = getMidpoint(v1, v2);
+                        uint32_t b = getMidpoint(v2, v3);
+                        uint32_t c = getMidpoint(v3, v1);
+
+                        newIndices.push_back(v1); newIndices.push_back(a); newIndices.push_back(c);
+                        newIndices.push_back(v2); newIndices.push_back(b); newIndices.push_back(a);
+                        newIndices.push_back(v3); newIndices.push_back(c); newIndices.push_back(b);
+                        newIndices.push_back(a);  newIndices.push_back(b); newIndices.push_back(c);
+                    }
+
+                    indices = newIndices;
+                    midpointCache.clear();
+                }
+
+                std::vector<float> vertices;
+                std::vector<uint32_t> finalIndices;
+                for(size_t i = 0; i < indices.size(); i += 3) {
+                    Vec3 v0 = positions[indices[i]];
+                    Vec3 v1 = positions[indices[i+1]];
+                    Vec3 v2 = positions[indices[i+2]];
+
+                    float u0 = 0.5f + std::atan2(v0.x, v0.z) / (2.0f * PI);
+                    float y0 = 0.5f + std::asin(v0.y) / PI;
+                    float u1 = 0.5f + std::atan2(v1.x, v1.z) / (2.0f * PI);
+                    float y1 = 0.5f + std::asin(v1.y) / PI;
+                    float u2 = 0.5f + std::atan2(v2.x, v2.z) / (2.0f * PI);
+                    float y2 = 0.5f + std::asin(v2.y) / PI;
+
+                    float uvs[3] = {u0, u1, u2};
+                    for(int a = 0; a < 3; ++a) {
+                        for(int b = a + 1; b < 3; ++b) {
+                            if(std::abs(uvs[a] - uvs[b]) > 0.5f) {
+                                if(uvs[a] < 0.5f) uvs[a] += 1.0f;
+                                else if(uvs[b] < 0.5f) uvs[b] += 1.0f;
+                            }
+                        }
+                    }
+                    u0 = uvs[0];
+                    u1 = uvs[1];
+                    u2 = uvs[2];
+
+                    uint32_t base = static_cast<uint32_t>(vertices.size() / Mesh::kVertexStride);
+                    auto pushVertex = [&](const Vec3& p, float u, float v) {
+                        vertices.push_back(p.x * 0.5f);
+                        vertices.push_back(p.y * 0.5f);
+                        vertices.push_back(p.z * 0.5f);
+                        vertices.push_back(p.x);
+                        vertices.push_back(p.y);
+                        vertices.push_back(p.z);
+                        vertices.push_back(u);
+                        vertices.push_back(v);
+                        vertices.push_back(0.3f); // color R
+                        vertices.push_back(0.5f); // color G
+                        vertices.push_back(0.8f); // color B
+                    };
+                    pushVertex(v0, u0, y0);
+                    pushVertex(v1, u1, y1);
+                    pushVertex(v2, u2, y2);
+
+                    finalIndices.push_back(base);
+                    finalIndices.push_back(base+1);
+                    finalIndices.push_back(base+2);
+                }
+
+                return MeshData{
+                    vertices, finalIndices,
+                    Vec3(-0.5f, -0.5f, -0.5f),
+                    Vec3(0.5f, 0.5f, 0.5f)
+                };
+            }());
+
             return m;
         }();
         return map;

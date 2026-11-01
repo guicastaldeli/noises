@@ -10,6 +10,8 @@
 
 #define MATH_MAT4
 
+#define PI 3.14159265358979323846f
+
 #include <utils/vec3.hpp>
 #include <vector>
 #include <stdexcept>

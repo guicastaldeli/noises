@@ -10,8 +10,6 @@
 void Skybox::set() {
     mesh = &terrain->getMesh();
 
-    MESH_ID = static_cast<uint32_t>(IdGen::next(ids));
-
     TextureResult tex = mesh->getTextureLoader()->load(TEX_PATH);
     uint32_t texId = tex.texId;
 
@@ -25,8 +23,6 @@ void Skybox::render() {
 
     mesh->setPosition(MESH_ID, posX, posY, posZ);
     mesh->setScale(MESH_ID, scaleX, scaleY, scaleZ);
-
-    mesh->load(MESH_ID, MESH_TYPE);
 }
 
 // Init
