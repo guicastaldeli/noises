@@ -24,6 +24,8 @@ private:
         uint32_t slot = 0;
     };
 
+    inline static const std::string TEX_PATH = "../assets/";
+
     Main& main;
 
     VkDevice device = VK_NULL_HANDLE;

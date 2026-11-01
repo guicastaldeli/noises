@@ -1,6 +1,45 @@
 #include <terrain.hpp>
 #include <iostream>
 
+/*************************** 
+ * 
+ * Skybox
+ * 
+ * *****************/
+// Set
+void Skybox::set() {
+    mesh = &terrain->getMesh();
+
+    MESH_ID = static_cast<uint32_t>(IdGen::next(ids));
+
+    TextureResult tex = mesh->getTextureLoader()->load(TEX_PATH);
+    uint32_t texId = tex.texId;
+
+    mesh->load(MESH_ID, MESH_TYPE);
+    mesh->setTexture(MESH_ID, texId);
+}
+
+// Render
+void Skybox::render() {
+    if(!mesh) return;
+
+    mesh->setPosition(MESH_ID, posX, posY, posZ);
+    mesh->setScale(MESH_ID, scaleX, scaleY, scaleZ);
+
+    mesh->load(MESH_ID, MESH_TYPE);
+}
+
+// Init
+void Skybox::init(Mesh* m, Terrain* t) {
+    Skybox::mesh = m;
+    Skybox::terrain = t;
+}
+
+/*****************************************
+ * 
+ * Terrain
+ * 
+ ******************************/
 Terrain::Terrain(
     Tick& tick, 
     Mesh& mesh, 
@@ -8,8 +47,18 @@ Terrain::Terrain(
 ) : 
     tick(tick),
     mesh(mesh),
-    collision(collision) {}
+    collision(collision) 
+{
+    Skybox::init(&mesh, this);
+}
 Terrain::~Terrain() {};
+
+/**
+ * Get Mesh
+ */
+Mesh& Terrain::getMesh() const {
+    return mesh;
+}
 
 /**
  * 
@@ -24,8 +73,8 @@ void Terrain::upload(const ChunkData& chunkData) {
     spawnedIds.clear();
     if(trackCollision) collision.clearColliders();
 
-    TextureResult tex = mesh.getTextureLoader()->load("test.jpg");
-    uint32_t texId = tex.texId;
+    //TextureResult tex = mesh.getTextureLoader()->load("test.jpg");
+    //uint32_t texId = tex.texId;
 
     for(int z = 0; z < chunkData.sz; ++z)
     for(int y = 0; y < chunkData.sy; ++y)
@@ -95,8 +144,19 @@ void Terrain::render() {
         mesh.setTexture(i, texId);
     }*/
 
+    Skybox::render();
+
     static const ChunkData cd{};
     updateBoundary(lastChunk ? *lastChunk : cd);
+}
+
+/**
+ * 
+ * Init
+ * 
+ */
+void Terrain::init() {
+    Skybox::set();
 }
 
 /**

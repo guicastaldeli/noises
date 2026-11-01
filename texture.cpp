@@ -33,11 +33,13 @@ uint32_t findMemoryType(VkPhysicalDevice physicalDevice,
  * 
  */
 uint32_t TextureLoader::load(uint32_t id, const std::string& path) {
+    std::string texPath = TEX_PATH + path;
+
     auto it = toTexId.find(id);
     if(it != toTexId.end()) return it->second;
     
     int w = 0, h = 0, ch = 0;
-    stbi_uc* pixels = stbi_load(path.c_str(), &w, &h, &ch, STBI_rgb_alpha);
+    stbi_uc* pixels = stbi_load(texPath.c_str(), &w, &h, &ch, STBI_rgb_alpha);
     if(!pixels) {
         throw std::runtime_error("TextureLoader: failed to load '" + path + "': " +
         (stbi_failure_reason() ? stbi_failure_reason() : "unknown"));
