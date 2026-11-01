@@ -17,6 +17,8 @@ Terrain::~Terrain() {};
  * 
  */
 void Terrain::upload(const ChunkData& chunkData) {
+    lastChunk = &chunkData;
+
     IdGen::reset(ids);
     mesh.clearInstances(spawnedIds);
     spawnedIds.clear();
@@ -38,25 +40,21 @@ void Terrain::upload(const ChunkData& chunkData) {
                     origin.y + float(y),
                     origin.z + float(z));
         mesh.load(id, MESH_TYPE);
-        mesh.setTexture(id, texId);
+        //mesh.setTexture(id, texId);
         if(trackCollision) {
             collision.set(id, CollisionType::STATIC_COLLIDER);
         }
     }
 
     if(trackCollision) collision.build();
-}
 
-/**
- * Set
- */
-void Terrain::set() {
-    
+    updateBoundary(chunkData);
 }
 
 /**
  * Update
  */
+// Update
 void Terrain::update() {
     //if(tick.ShouldTick()) std::cout << "Draw calls: " << mesh.getDrawCalls() << std::endl;
     /*float deltaTime = tick.GetDeltaTime() * 0.001f;
@@ -64,6 +62,25 @@ void Terrain::update() {
     mesh.setRotation(1, deltaTime, 0.0f, 0.0f);
     mesh.setRotation(2, 0.0f, 0.0f, deltaTime);
 */}
+
+// Update Boundary
+void Terrain::updateBoundary(const ChunkData& chunkData) {
+    bool registered = false;
+    for(Collider* c : collision.getColliders()) {
+        if(c == &boundary) { registered = true; break; }
+    }
+    if(!registered) {
+        collision.addCollider(&boundary);
+    }
+
+    float cx = origin.x + (chunkData.sx * 0.5f);
+    float cz = origin.z + (chunkData.sz * 0.5f);
+
+    float maxRadius = std::max(chunkData.sx, chunkData.sz) * 0.5f;
+    float halfSize = maxRadius * BOUNDARY_MULTIPLIER;
+    
+    boundary.update({cx, 0.0f, cz}, halfSize);
+}
 
 /**
  * 
@@ -77,15 +94,9 @@ void Terrain::render() {
         mesh.load(i, "cube");
         mesh.setTexture(i, texId);
     }*/
-}
 
-/**
- * 
- * Init
- * 
- */
-void Terrain::init() {
-    
+    static const ChunkData cd{};
+    updateBoundary(lastChunk ? *lastChunk : cd);
 }
 
 /**

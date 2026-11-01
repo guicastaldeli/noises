@@ -230,6 +230,13 @@ bool BoundaryCollider::isOutsideBoundary(const Vec3& p) const {
     return std::fabs(p.x - center.x) > distance ||
             std::fabs(p.z - center.z) > distance;
 }
+
+// Update
+void BoundaryCollider::update(const Vec3& center, float distance) {
+    setCenter(center);
+    setDistance(distance);
+    activate();
+}
 // ---------------------------------------
 
 /******************************
@@ -315,6 +322,15 @@ bool CollisionManager::colliderExists(const std::string& id) const {
 }
 
 /**
+ * Add Collider
+ */
+void CollisionManager::addCollider(Collider* collider) {
+    if(!collider) return;
+    if(std::find(colliders.begin(), colliders.end(), collider) != colliders.end()) return;
+    colliders.push_back(collider);
+}
+
+/**
  * Get Collider
  */
 Collider* CollisionManager::getCollider(const std::string& id) {
@@ -372,16 +388,16 @@ const BBox& CollisionManager::localBoxFor(const std::string& type) {
  * Set
  */
 void CollisionManager::set(uint32_t id, CollisionType type) {
-    const std::string typeName = mesh.getType(id);
-    if(typeName.empty()) return;
-
-    const std::string sid = typeName;
-    StaticCollider* sc = nullptr;
-
     switch(type) {
         // Static
         case CollisionType::STATIC_COLLIDER: {
+            const std::string typeName = mesh.getType(id);
+            if(typeName.empty()) return;
+
+            const std::string sid = typeName;
             auto it = colliderByKey.find(sid);
+            StaticCollider* sc = nullptr;
+            
             if(it != colliderByKey.end()) {
                 sc = it->second;
             } else {
@@ -400,6 +416,19 @@ void CollisionManager::set(uint32_t id, CollisionType type) {
         }
         // Boundary
         case CollisionType::BOUNDARY_COLLIDER: {
+            auto it = colliderByKey.find("boundary");
+            if(it != colliderByKey.end()) return;
+
+            auto owned = std::make_unique<BoundaryCollider>(100.0f);
+            BoundaryCollider* b = owned.get();
+
+            b->setCenter({0.0f, 0.0f, 0.0f});
+            b->setDistance(100.0f);
+
+            ownedColliders.push_back(std::move(owned));
+            colliders.push_back(b);
+            colliderByKey["boundary"] = nullptr;
+            colliderIdSet.insert("boundary");
             break;
         }
     }
@@ -410,6 +439,10 @@ void CollisionManager::set(RigidBody& rigidBody, CollisionType type) {
         if(e.rigidBody == &rigidBody) return;
     }
     dynamicRigidBody.push_back({ &rigidBody, type });
+}
+
+void CollisionManager::set(CollisionType type) {
+    set(0, type);
 }
 
 /**

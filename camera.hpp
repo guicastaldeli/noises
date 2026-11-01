@@ -74,11 +74,11 @@ public:
     ~Camera();
 
     float zNear = 0.1f;
-    float zFar = 100.0f;
+    float zFar = 1000.0f;
     float fov = 60.0f;
 
     float POS_X = 0.0f;
-    float POS_Y = 90.0f;
+    float POS_Y = 20.0f;
     float POS_Z = 6.0f;
 
     float MOVE_SPEED = 60.0f;

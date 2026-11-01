@@ -206,6 +206,8 @@ public:
     void activate();
     void deactivate();
     bool isActive() const;
+
+    void update(const Vec3& center, float distance);
 };
 // ---------------------------------------
 
@@ -243,8 +245,10 @@ public:
     ~CollisionManager();
 
     void set(uint32_t id, CollisionType type);
+    void set(CollisionType type);
     void set(RigidBody& rigidBody, CollisionType type);
 
+    void addCollider(Collider* collider);
     bool colliderExists(const std::string& id) const;
     bool hasRigidBody(const RigidBody& rigidBody) const;
     Collider* getCollider(const std::string& id);
