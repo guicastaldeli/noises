@@ -1,5 +1,6 @@
 #include <terrain.hpp>
 #include <iostream>
+#include <camera.hpp>
 
 /*************************** 
  * 
@@ -30,6 +31,17 @@ void Skybox::init(Mesh* m, Terrain* t) {
     Skybox::mesh = m;
     Skybox::terrain = t;
 }
+
+// Update
+void Skybox::update() {
+    Vec3 pos = mesh->getCamera().getPosition();
+    Skybox::posX = pos.x;
+    Skybox::posY = pos.y;
+    Skybox::posZ = pos.z;
+}
+/**
+ * 
+ */
 
 /*****************************************
  * 
@@ -105,8 +117,9 @@ void Terrain::update() {
     /*float deltaTime = tick.GetDeltaTime() * 0.001f;
     mesh.setRotation(0, 0.0f, deltaTime, 0.0f);
     mesh.setRotation(1, deltaTime, 0.0f, 0.0f);
-    mesh.setRotation(2, 0.0f, 0.0f, deltaTime);
-*/}
+    mesh.setRotation(2, 0.0f, 0.0f, deltaTime);*/
+    Skybox::update();
+}
 
 // Update Boundary
 void Terrain::updateBoundary(const ChunkData& chunkData) {

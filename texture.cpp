@@ -39,6 +39,7 @@ uint32_t TextureLoader::load(uint32_t id, const std::string& path) {
     if(it != toTexId.end()) return it->second;
     
     int w = 0, h = 0, ch = 0;
+    stbi_set_flip_vertically_on_load(true);
     stbi_uc* pixels = stbi_load(texPath.c_str(), &w, &h, &ch, STBI_rgb_alpha);
     if(!pixels) {
         throw std::runtime_error("TextureLoader: failed to load '" + path + "': " +

@@ -16,9 +16,8 @@
  * *****************/
 class Terrain;
 struct Skybox {
-    inline static uint32_t MESH_ID = 9999999;
+    inline static uint32_t MESH_ID = 999999;
     inline static constexpr const char* MESH_TYPE = "sphere";
-    inline static const char* ids = "skybox"; 
 
     inline static constexpr const char* TEX_PATH = "skybox.jpg";
 
@@ -29,14 +28,18 @@ struct Skybox {
     inline static float posY = 0.0f;
     inline static float posZ = 0.0f;
 
-    inline static float scaleX = 40.0f;//MAX_CHUNK_X_SIZE * 10.0f;
-    inline static float scaleY = 40.0f;//MAX_CHUNK_Y_SIZE * 10.0f;
-    inline static float scaleZ = 40.0f;//MAX_CHUNK_Z_SIZE * 10.0f;
+    inline static float scaleX = MAX_CHUNK_X_SIZE * 10.0f;
+    inline static float scaleY = MAX_CHUNK_Y_SIZE * 10.0f;
+    inline static float scaleZ = MAX_CHUNK_Z_SIZE * 10.0f;
 
     inline static void render();
     inline static void set();
+    inline static void update();
     inline static void init(Mesh* m, Terrain* t);
 };
+/**
+ * 
+ */
 
 /*****************************************
  * 

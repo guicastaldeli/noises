@@ -419,6 +419,8 @@ public:
 
     inline static constexpr size_t kVertexStride = sizeof(Vertex) / sizeof(float);
 
+    const Camera& getCamera() const;
+
     TextureLoader* getTextureLoader() const;
     void setTexture(uint32_t id, uint32_t texId);
     uint32_t getTexture(uint32_t id) const;

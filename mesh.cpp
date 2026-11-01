@@ -20,6 +20,13 @@ Mesh::~Mesh() {
 };
 
 /**
+ * Get Camera
+ */
+const Camera& Mesh::getCamera() const {
+    return camera;
+}
+
+/**
  * Get Texture Loader
  */
 TextureLoader* Mesh::getTextureLoader() const {
@@ -336,8 +343,17 @@ void Mesh::render() {
         di.hasTexture = (textureIds.count(entry.id) > 0) ? 1u : 0u;
         byType[entry.type].push_back(di);
     }
+    
+    VkDeviceSize totalSize = 0;
+    for(auto& [type, models] : byType) totalSize += sizeof(DataInstance) * models.size();
+
+    setInstanceBuffer(totalSize);
+
+    void* mappedData = nullptr;
+    vkMapMemory(device, instanceBufferMemory, 0, totalSize, 0, &mappedData);
 
     VkCommandBuffer cmd = main.getCurrentCommandBuffer();
+    VkDeviceSize currentOffset = 0;
     VkDescriptorSet sets[] = {
         descriptorSets[main.currentFrame],
         texture->getDescriptorSet(main.currentFrame)
@@ -350,17 +366,13 @@ void Mesh::render() {
     
     for(auto& [type, models] : byType) {
         VkDeviceSize size = sizeof(DataInstance) * models.size();
-        setInstanceBuffer(size);
-
-        void* data;
-        vkMapMemory(device, instanceBufferMemory, 0, size, 0, &data);
-        memcpy(data, models.data(), (size_t)size);
-        vkUnmapMemory(device, instanceBufferMemory);
+        std::memcpy((char*)mappedData + currentOffset, models.data(), (size_t)size);
 
         const BufferData& bufferData = bufferMeshes.at(type);
-
+        
         VkBuffer vbs[] = { bufferData.vertexBuffer, instanceBuffer };
-        VkDeviceSize offsets[] = { 0, 0 };
+        VkDeviceSize offsets[] = { 0, currentOffset };
+
         vkCmdBindVertexBuffers(cmd, 0, 2, vbs, offsets);
         vkCmdBindIndexBuffer(cmd, bufferData.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
         vkCmdDrawIndexed(cmd, bufferData.indexCount,
@@ -368,7 +380,10 @@ void Mesh::render() {
                         0, 0, 0);
 
         drawCalls++;
+        currentOffset += size;
     }
+
+    vkUnmapMemory(device, instanceBufferMemory);
 
     //pendingInstances.clear();
 }
