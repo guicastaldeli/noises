@@ -58,6 +58,13 @@ LightingManager* Mesh::getLightingManager() const {
 }
 
 /**
+ * Set Has Lit
+ */
+void Mesh::setHasLit(uint32_t id, bool lit) {
+    hasLitIds[id] = lit ? 1u : 0u;
+}
+
+/**
  * Get Vertices
  */
 const std::vector<float>* Mesh::getVertices(const std::string type) const {
@@ -328,13 +335,15 @@ void Mesh::render() {
 
     std::memcpy(uniformBuffersMapped[main.currentFrame], &ubo, sizeof(ubo));
 
+    const int dataCount = 3;
     struct DataInstance {
         Mat4 model;
         uint32_t texId;
         uint32_t hasTexture;
+        uint32_t hasLit;
     };
     static_assert(sizeof(DataInstance) == sizeof(Mat4) + 
-                    sizeof(uint32_t) * 2, 
+                    sizeof(uint32_t) * dataCount, 
                     "DataInstance layout must match vertex input stride");
 
     std::unordered_map<std::string, std::vector<DataInstance>> byType;
@@ -353,6 +362,7 @@ void Mesh::render() {
         di.model = transported;
         di.texId = getTexture(entry.id);
         di.hasTexture = (textureIds.count(entry.id) > 0) ? 1u : 0u;
+        auto litIt = hasLitIds.find(entry.id);      di.hasLit = (litIt != hasLitIds.end()) ? litIt->second : 1u;
         byType[entry.type].push_back(di);
     }
     

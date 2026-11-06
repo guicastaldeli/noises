@@ -7,6 +7,7 @@ layout(location = 2) flat in uint fragTexIndex;
 layout(location = 3) flat in uint fragHasTexture;
 layout(location = 4) in vec3 fragPosWorld;
 layout(location = 5) in vec3 fragNormal;
+layout(location = 6) flat in uint fragHasLit;
 
 struct LightData {
     vec4 position;
@@ -64,7 +65,7 @@ void setPointLight(vec4 color, inout vec3 ambientLightColor) {
         float dist = length(toLight);
         vec3 lightDir = normalize(toLight);
 
-        float att = max(1.0 - (dist / 10.0), 0.0);
+        float att = 1.0 / (1.0 + 0.5 * dist + 0.2 * dist * dist);
         
         float diff = max(dot(fragNormal, normalize(toLight)), 0.0);
 
@@ -82,7 +83,7 @@ void main() {
     vec4 baseColor = vec4(fragColor, 1.0);
     if(fragHasTexture != 0u) baseColor = texture(tex[nonuniformEXT(fragTexIndex)], fragUv);
     vec3 viewDir = normalize(ubo.cameraPos.xyz - fragPosWorld);
-    if(dot(fragNormal, viewDir) < -0.5) {
+    if(fragHasLit == 0u) {
         outColor = baseColor;
         return;
     }

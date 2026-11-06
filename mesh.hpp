@@ -147,6 +147,7 @@ private:
         std::string type;
         uint32_t texId      = 0;
         uint32_t hasTexture = 0;
+        uint32_t hasLit     = 1;
     };
     /**
      * 
@@ -425,6 +426,9 @@ public:
     inline static constexpr size_t kVertexStride = sizeof(Vertex) / sizeof(float);
     const std::vector<void*> getUniformBuffersMapped() const { return uniformBuffersMapped; } 
 
+    std::unordered_map<uint32_t, uint32_t> hasLitIds;
+    void setHasLit(uint32_t id, bool lit);
+    
     const Camera& getCamera() const;
 
     TextureLoader* getTextureLoader() const;
@@ -624,15 +628,15 @@ public:
      * Get Vertex Input State
      * *******/
     VkPipelineVertexInputStateCreateInfo getVertexInputState() const {
-        const std::size_t instAttr = 6;
-        const std::size_t combinedArray = 10;
+        const std::size_t instAttr = 7;
+        const std::size_t combinedArray = 11;
 
         static auto bindingDesc = Vertex::getBindingDescription();
         static auto attrDesc = Vertex::getAttributeDescriptions();
 
         static VkVertexInputBindingDescription instanceBinding{};
         instanceBinding.binding = 1;
-        instanceBinding.stride = sizeof(Mat4) + sizeof(uint32_t) * 2;
+        instanceBinding.stride = sizeof(Mat4) + sizeof(uint32_t) * 3;
         instanceBinding.inputRate = VK_VERTEX_INPUT_RATE_INSTANCE;
 
         static std::array<VkVertexInputAttributeDescription, instAttr> instanceAttr{};
@@ -652,6 +656,11 @@ public:
         instanceAttr[5].location = 9;
         instanceAttr[5].format = VK_FORMAT_R32_UINT;
         instanceAttr[5].offset = sizeof(Mat4) + sizeof(uint32_t);
+        // location 10: hasLit
+        instanceAttr[6].binding = 1;
+        instanceAttr[6].location = 10;
+        instanceAttr[6].format = VK_FORMAT_R32_UINT;
+        instanceAttr[6].offset = sizeof(Mat4) + sizeof(uint32_t) * 2;
 
         static std::array<VkVertexInputBindingDescription, 2> bindings = {
             bindingDesc,
