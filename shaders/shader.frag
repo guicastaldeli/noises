@@ -81,6 +81,11 @@ void setPointLight(vec4 color, inout vec3 ambientLightColor) {
 void main() {
     vec4 baseColor = vec4(fragColor, 1.0);
     if(fragHasTexture != 0u) baseColor = texture(tex[nonuniformEXT(fragTexIndex)], fragUv);
+    vec3 viewDir = normalize(ubo.cameraPos.xyz - fragPosWorld);
+    if(dot(fragNormal, viewDir) < -0.5) {
+        outColor = baseColor;
+        return;
+    }
 
     /* Ambient Light */ vec3 ambientLightColor = setAmbientLight(baseColor);
     /* Directional Light */ setDirectionalLight(baseColor, ambientLightColor);

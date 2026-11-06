@@ -16,6 +16,7 @@ void Skybox::set() {
 
     mesh->load(MESH_ID, MESH_TYPE);
     mesh->setTexture(MESH_ID, texId);
+    mesh->setColor(MESH_ID, 0.0f, 0.0f, 0.0f);
 }
 
 // Render
