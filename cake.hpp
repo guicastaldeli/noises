@@ -28,6 +28,7 @@
 #include <limits>
 #include <algorithm>
 #include <set>
+#include <lighting.hpp>
 
 class Window;
 

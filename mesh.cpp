@@ -14,8 +14,10 @@ Mesh::Mesh(Main& main, Camera& camera) :
     main(main),
     camera(camera) {
     texture = new TextureLoader(main);
+    lighting = new LightingManager(*this); 
 };
 Mesh::~Mesh() {
+    delete lighting;    lighting = nullptr;
     delete texture;     texture = nullptr;
 };
 
@@ -46,6 +48,13 @@ void Mesh::setTexture(uint32_t id, uint32_t texId) {
 uint32_t Mesh::getTexture(uint32_t id) const {
     auto it = textureIds.find(id);
     return it == textureIds.end() ? 0u : it->second;
+}
+
+/**
+ * Get Lighting Manager
+ */
+LightingManager* Mesh::getLightingManager() const {
+    return lighting;
 }
 
 /**
@@ -313,6 +322,9 @@ void Mesh::render() {
             ubo.proj.m[r][c] = proj.m[c][r];
         }
     }
+
+    ubo.cameraPos = camera.getPosition();
+    lighting->upload(ubo);
 
     std::memcpy(uniformBuffersMapped[main.currentFrame], &ubo, sizeof(ubo));
 

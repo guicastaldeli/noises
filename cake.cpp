@@ -238,6 +238,10 @@ void Main::Init() {
     mesh->init();
     terrain->init();
     data->init();
+
+    LightingManager* lights = mesh->getLightingManager();
+    lights->add(LightType::AMBIENT).setColor("#ad2d2d").setIntensity(1.0f);
+    
     ui->I<Main>();
 }
 

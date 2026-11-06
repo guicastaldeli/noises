@@ -21,9 +21,26 @@
 #include <texture.hpp>
 #include <array>
 #include <cstddef>
+#include <lighting.hpp>
 
 class Main;
 class Camera;
+
+/**********
+ * 
+ * Uniform Buffer
+ * 
+ *******/
+struct UniformBuffer {
+    Mat4 view;
+    Mat4 proj;
+    Vec3 cameraPos; 
+    float padding0;
+    Lights lights;
+};
+/**
+ * 
+ */
 
 /***************
  * 
@@ -121,19 +138,6 @@ private:
 
     /**********
      * 
-     * Uniform Buffer
-     * 
-     *******/
-    struct UniformBuffer {
-        Mat4 view;
-        Mat4 proj;
-    };
-    /**
-     * 
-     */
-
-    /**********
-     * 
      * Instance
      * 
      *******/
@@ -192,6 +196,7 @@ private:
     Main& main;
     Camera& camera;
     TextureLoader* texture = nullptr;
+    LightingManager* lighting = nullptr;
 
     const Transform& getTransform(uint32_t id) const;
     const BufferData& getBufferData(const std::string& type) const;
@@ -418,12 +423,15 @@ public:
     ~Mesh();
 
     inline static constexpr size_t kVertexStride = sizeof(Vertex) / sizeof(float);
+    const std::vector<void*> getUniformBuffersMapped() const { return uniformBuffersMapped; } 
 
     const Camera& getCamera() const;
 
     TextureLoader* getTextureLoader() const;
     void setTexture(uint32_t id, uint32_t texId);
     uint32_t getTexture(uint32_t id) const;
+
+    LightingManager* getLightingManager() const;
 
     const std::vector<float>* getVertices(const std::string type) const;
     std::string getType(uint32_t id) const;

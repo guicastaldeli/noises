@@ -3,6 +3,7 @@
 layout(binding = 0) uniform UniformBuffer {
     mat4 view;
     mat4 proj;
+    vec4 cameraPos;
 } ubo;
 
 layout(location = 0) in vec3 inPosition;
@@ -17,13 +18,18 @@ layout(location = 0) out vec3 fragColor;
 layout(location = 1) out vec2 fragUv;
 layout(location = 2) flat out uint fragTexIndex;
 layout(location = 3) flat out uint fragHasTexture;
+layout(location = 4) out vec3 fragPosWorld;
+layout(location = 5) out vec3 fragNormal;
 
 void main() {
-    vec4 terrainPos = instanceModel * vec4(inPosition, 1.0);
-    gl_Position = ubo.proj * ubo.view * terrainPos;
+    vec4 worldPos = instanceModel * vec4(inPosition, 1.0);
+    gl_Position = ubo.proj * ubo.view * worldPos;
     
     fragColor = inColor;
     fragUv = inUv;
     fragTexIndex = inTexIndex;
     fragHasTexture = inHasTexture;
+
+    fragPosWorld = worldPos.xyz;
+    fragNormal = normalize(mat3(instanceModel) * inNormal);
 }
