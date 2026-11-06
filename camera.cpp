@@ -280,6 +280,15 @@ void Camera::update() {
 
     set();
     move();
+
+    /*if(tick.ShouldTick()) {
+        Vec3 p = getPosition();
+        std::cout << "[camera] pos: ("
+                  << p.x << ", " << p.y << ", " << p.z
+                  << ")  yaw: " << yaw
+                  << "  pitch: " << pitch
+                  << std::endl;
+    }*/
 }
 
 /**

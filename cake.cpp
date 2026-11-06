@@ -240,8 +240,12 @@ void Main::Init() {
     data->init();
 
     LightingManager* lights = mesh->getLightingManager();
-    lights->add(LightType::AMBIENT).setColor("#ad2d2d").setIntensity(1.0f);
+    lights->add(LightType::AMBIENT).setColor("#295ab5").setIntensity(1.0f);
     
+    lights->add(LightType::POINT)
+          .setColor("#FF0000")
+          .setPosition(20.5f, 0.5f, 14.6f)
+          .setIntensity(10.0f);  
     ui->I<Main>();
 }
 
