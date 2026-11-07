@@ -82,8 +82,8 @@ void Terrain::upload(const ChunkData& chunkData) {
     spawnedIds.clear();
     if(trackCollision) collision.clearColliders();
 
-    //TextureResult tex = mesh.getTextureLoader()->load("test.jpg");
-    //uint32_t texId = tex.texId;
+    TextureResult tex = mesh.getTextureLoader()->load("test.jpg");
+    uint32_t texId = tex.texId;
 
     for(int z = 0; z < chunkData.sz; ++z)
     for(int y = 0; y < chunkData.sy; ++y)
@@ -98,7 +98,7 @@ void Terrain::upload(const ChunkData& chunkData) {
                     origin.y + float(y),
                     origin.z + float(z));
         mesh.load(id, MESH_TYPE);
-        //mesh.setTexture(id, texId);
+        mesh.setTexture(id, texId);
         if(trackCollision) {
             collision.set(id, CollisionType::STATIC_COLLIDER);
         }
@@ -147,12 +147,18 @@ void Terrain::updateBoundary(const ChunkData& chunkData) {
  * 
  */
 void Terrain::render() {
-    /*uint32_t texId = mesh.getTextureLoader()->load(1, "test.jpg");
-    for(int i = 0; i < 5; i++) {
-        mesh.setPosition(i, i * -1.5f, 0.0f, 0.0f);
+    TextureResult tex = mesh.getTextureLoader()->load("test.jpg");
+    uint32_t texId = tex.texId;
+    /*for(int i = 0; i < 5; i++) {
+        mesh.setPosition(i, i * -1.5f, 0.0f, 120.0f);
         mesh.load(i, "cube");
         mesh.setTexture(i, texId);
     }*/
+
+    int id = 9999;
+    mesh.setPosition(id, 15.0f, 1.0f, 15.0f);
+    mesh.load(id, "cube");
+    mesh.setTexture(id, texId);
 
     Skybox::render();
 

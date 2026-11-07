@@ -127,6 +127,7 @@ void DirectionalLight::upload(UniformBuffer& ubo) const {
             break;
         }
     }
+    if(i < 0 || i >= 4) return;
 
     ubo.lights.dirLights[i].direction[0] = direction.x;
     ubo.lights.dirLights[i].direction[1] = direction.y;

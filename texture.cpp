@@ -253,8 +253,8 @@ uint32_t TextureLoader::load(uint32_t id, const std::string& path) {
     {
         VkSamplerCreateInfo si{};
         si.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-        si.magFilter = VK_FILTER_LINEAR;
-        si.minFilter = VK_FILTER_LINEAR;
+        si.magFilter = VK_FILTER_NEAREST;
+        si.minFilter = VK_FILTER_NEAREST;
         si.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
         si.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
         si.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
@@ -263,7 +263,7 @@ uint32_t TextureLoader::load(uint32_t id, const std::string& path) {
         si.unnormalizedCoordinates = VK_FALSE;
         si.compareEnable = VK_FALSE;
         si.compareOp = VK_COMPARE_OP_ALWAYS;
-        si.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+        si.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
         si.minLod = 0.0f;
         si.maxLod = 0.0f;
         if(vkCreateSampler(device, &si, nullptr, &sampler) != VK_SUCCESS) {

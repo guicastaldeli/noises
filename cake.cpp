@@ -241,16 +241,16 @@ void Main::Init() {
 
     LightingManager* lights = mesh->getLightingManager();
     //lights->add(LightType::AMBIENT).setColor("#c12222").setIntensity(5.0f);
-    lights->add(LightType::AMBIENT).setColor("#202020").setIntensity(1.0f);
+    lights->add(LightType::AMBIENT).setColor("#1a1a1a").setIntensity(0.5f);
 
     lights->add(LightType::DIRECTIONAL)
-      .setColor("#bd13cd")
-      .setDirection(-0.5f, -1.0f, -0.5f)
-      .setIntensity(2.0f);
-    lights->add(LightType::POINT)
+      .setColor("#fdfdfd")
+      .setDirection(-10.0f, -10.0f, -10.0f) 
+      .setIntensity(1.0f);
+    /*lights->add(LightType::POINT)
         .setColor("#FFFFFF")
         .setPosition(15.0f, 5.0f, 15.0f)
-        .setIntensity(20.0f);
+        .setIntensity(20.0f);*/
     ui->I<Main>();
 }
 

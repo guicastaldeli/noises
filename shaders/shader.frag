@@ -93,4 +93,5 @@ void main() {
     /* Point Light */ setPointLight(baseColor, ambientLightColor);
 
     outColor = vec4(ambientLightColor, 1.0);
+    return;
 }

@@ -472,6 +472,8 @@ void Mesh::clearInstances(const std::vector<uint32_t>& ids) {
     for(uint32_t id : ids) {
         transforms.erase(id);
         idToType.erase(id);
+        hasLitIds.erase(id);
+        textureIds.erase(id);
     }
 
     pendingInstances.erase(
