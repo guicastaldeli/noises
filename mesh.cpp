@@ -412,7 +412,7 @@ void Mesh::render(bool shadowPass) {
             texture->getDescriptorSet(main.currentFrame),
             LightingManager::ShadowMap::shadowDescriptorSet
         };
-        renderInstances(LightingManager::ShadowMap::shadowPipelineLayout, sets, static_cast<uint32_t>(std::size(sets)));
+        renderInstances(main.pipelineLayout, sets, static_cast<uint32_t>(std::size(sets)));
     }
 }
 

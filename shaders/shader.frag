@@ -32,9 +32,9 @@ void main() {
     /* Directional Light */ setDirectionalLight(baseColor, ambientLightColor);
     /* Point Light */ setPointLight(baseColor, ambientLightColor);
 
-    vec4 fragPosLightSpace = ubo.lightSpaceMatrix * vec4(fragPosWorld, 0);
-
+    vec4 fragPosLightSpace = ubo.lightSpaceMatrix * vec4(fragPosWorld, 1.0);
     float shadow = calcShadow(fragPosLightSpace);
-    outColor = vec4(mix(ambientLightColor, setAmbientLight(baseCOlor), shadow), 1.0);
+    
+    outColor = vec4(mix(ambientLightColor, setAmbientLight(baseColor), shadow), 1.0);
     return;
 }

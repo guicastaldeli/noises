@@ -27,7 +27,7 @@ layout(binding = 0) uniform UniformBuffer {
     mat4 lightSpaceMatrix;
     int shadowMapWidth;
     int shadowMapHeight;
-    vec2 shadowPadding;
+    vec2 padding2;
 } ubo;
 
 #endif
