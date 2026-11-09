@@ -52,7 +52,7 @@ public:
     /**
      * 
      */
-    
+
     /********* 
      * 
      * Queue Family
@@ -118,6 +118,7 @@ public:
     void Init();
 
     void SetRenderPass(VkCommandBuffer cmd, uint32_t imageIndex);
+    void RenderFrame(VkCommandBuffer cmd, uint32_t imageIndex);
     void Render(VkCommandBuffer commandBuffer);
     void Run();
 
@@ -647,7 +648,7 @@ public:
             throw std::runtime_error("failed to begin recording command buffer!");
         }
 
-        SetRenderPass(commandBuffer, imageIndex);
+        RenderFrame(commandBuffer, imageIndex);
 
         if(vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
             throw std::runtime_error("failed to record command buffer!");

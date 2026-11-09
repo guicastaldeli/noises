@@ -183,12 +183,14 @@ void Main::Create() {
  * Render
  * 
  */
+// Render
 void Main::Render(VkCommandBuffer commandPass) {
     terrain->render();
-    mesh->render();
+    mesh->render(false);
     ui->R<Data>(commandPass, *data);
 }
 
+// Render Pass
 void Main::SetRenderPass(VkCommandBuffer cmd, uint32_t imageIndex) {
     VkRenderPassBeginInfo rp{};
     rp.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -222,6 +224,12 @@ void Main::SetRenderPass(VkCommandBuffer cmd, uint32_t imageIndex) {
 
         Render(cmd);
     vkCmdEndRenderPass(cmd);
+}
+
+// Render Frame
+void Main::RenderFrame(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
+    mesh->renderShadowPass(commandBuffer);
+    SetRenderPass(commandBuffer, imageIndex);
 }
 
 /**

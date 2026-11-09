@@ -1,10 +1,5 @@
 #version 450
-
-layout(binding = 0) uniform UniformBuffer {
-    mat4 view;
-    mat4 proj;
-    vec4 cameraPos;
-} ubo;
+#include "ubo.glsl"
 
 layout(location = 0) in vec3 inPosition;
 layout(location = 1) in vec3 inNormal;

@@ -212,6 +212,8 @@ private:
                         VkDeviceMemory& bufferMemory);
     void uploadMesh(const std::string& type, const MeshData& data);
 
+    void renderInstances(VkPipelineLayout layout, VkDescriptorSet* sets, uint32_t setCount);
+
     /********************** 
      * 
      * Data
@@ -457,7 +459,8 @@ public:
     void load(uint32_t id, const std::string& type);
     void init();
     void create();
-    void render();
+    void render(bool shadowPass = false);
+    void renderShadowPass(VkCommandBuffer cmd);
 
     void cleanup();
     void clearInstances(const std::vector<uint32_t>& ids);

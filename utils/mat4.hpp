@@ -92,7 +92,7 @@ struct Mat4 {
                         f.z*up.x - f.x*up.z,
                         f.x*up.y - f.y*up.x);
         float sl = std::sqrt(s.x*s.x + s.y*s.y + s.z*s.z);
-        s = Vec3(s.x/sl, s.y/sl, s.y*s.y + s.z*s.z);
+        s = Vec3(s.x/sl, s.y/sl, s.z/sl);
 
         Vec3 u = Vec3(s.y*f.z - s.z*f.y,
                         s.z*f.x - s.x*f.z,

@@ -12,7 +12,6 @@
 
 #define SHADOW_MAP_WIDTH 2048
 #define SHADOW_MAP_HEIGHT 2048
-#define SHADOW_MAP_SIZE 2048
 
 struct UniformBuffer;
 
@@ -520,6 +519,42 @@ public:
          */
         static void create(Main main, Shader shader, Mesh mesh) {
             createShadowPipeline(main, shader, mesh);
+        }
+
+        /**
+         * 
+         * Render
+         * 
+         */
+        static void render(VkCommandBuffer cmd, Mesh& mesh) {
+            VkRenderPassBeginInfo rp{};
+            rp.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+            rp.renderPass = shadowRenderPass;
+            rp.framebuffer = shadowFramebuffer;
+            rp.renderArea.offset = {0, 0};
+            rp.renderArea.extent = {SHADOW_MAP_WIDTH, SHADOW_MAP_HEIGHT};
+
+            VkClearValue clear{};
+            clear.depthStencil = {1.0f, 0};
+            rp.clearValueCount = 1;
+            rp.pClearValues = &clear;
+
+            vkCmdBeginRenderPass(cmd, &rp, VK_SUBPASS_CONTENTS_INLINE);
+            vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, shadowPipeline);
+
+            VkViewport vp{};
+            vp.width = SHADOW_MAP_WIDTH;
+            vp.height = SHADOW_MAP_HEIGHT;
+            vp.minDepth = 0.0f;
+            vp.maxDepth = 1.0f;
+            vkCmdSetViewport(cmd, 0, 1, &vp);
+
+            VkRect2D sc{};
+            sc.extent = {SHADOW_MAP_WIDTH, SHADOW_MAP_HEIGHT};
+            vkCmdSetScissor(cmd, 0, 1, &sc);
+
+            mesh.render(true);
+            vkCmdEndRenderPass(cmd);
         }
 
         /**

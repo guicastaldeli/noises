@@ -318,7 +318,8 @@ void Mesh::load(uint32_t id, const std::string& type) {
  * Render
  * 
  */
-void Mesh::render() {
+// Render Instances
+void Mesh::renderInstances(VkPipelineLayout layout, VkDescriptorSet* sets, uint32_t setCount) {
     if(pendingInstances.empty()) return;
 
     UniformBuffer ubo{};
@@ -333,7 +334,6 @@ void Mesh::render() {
 
     ubo.cameraPos = camera.getPosition();
     lighting->upload(ubo);
-
     std::memcpy(uniformBuffersMapped[main.currentFrame], &ubo, sizeof(ubo));
 
     const int dataCount = 3;
@@ -376,17 +376,9 @@ void Mesh::render() {
     vkMapMemory(device, instanceBufferMemory, 0, totalSize, 0, &mappedData);
 
     VkCommandBuffer cmd = main.getCurrentCommandBuffer();
+    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, setCount, sets, 0, nullptr);
+
     VkDeviceSize currentOffset = 0;
-    VkDescriptorSet sets[] = {
-        descriptorSets[main.currentFrame],
-        texture->getDescriptorSet(main.currentFrame)
-    };
-    vkCmdBindDescriptorSets(cmd,
-                            VK_PIPELINE_BIND_POINT_GRAPHICS,
-                            main.pipelineLayout,
-                            0, 2, sets,
-                            0, nullptr);
-    
     for(auto& [type, models] : byType) {
         VkDeviceSize size = sizeof(DataInstance) * models.size();
         std::memcpy((char*)mappedData + currentOffset, models.data(), (size_t)size);
@@ -407,8 +399,26 @@ void Mesh::render() {
     }
 
     vkUnmapMemory(device, instanceBufferMemory);
+}
 
-    //pendingInstances.clear();
+// Render
+void Mesh::render(bool shadowPass) {
+    if(shadowPass) {
+        VkDescriptorSet sets[] = { descriptorSets[main.currentFrame] };
+        renderInstances(LightingManager::ShadowMap::shadowPipelineLayout, sets, static_cast<uint32_t>(std::size(sets)));
+    } else {
+        VkDescriptorSet sets[] = {
+            descriptorSets[main.currentFrame],
+            texture->getDescriptorSet(main.currentFrame),
+            LightingManager::ShadowMap::shadowDescriptorSet
+        };
+        renderInstances(LightingManager::ShadowMap::shadowPipelineLayout, sets, static_cast<uint32_t>(std::size(sets)));
+    }
+}
+
+// Render Shadow Pass
+void Mesh::renderShadowPass(VkCommandBuffer cmd) {
+    LightingManager::ShadowMap::render(cmd, *this);
 }
 
 /**
