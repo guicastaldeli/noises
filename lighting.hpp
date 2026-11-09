@@ -8,6 +8,9 @@
 #include <memory>
 #include <unordered_map>
 
+#define SHADOW_MAP_WIDTH 2048
+#define SHADOW_MAP_HEIGHT 2048
+
 struct UniformBuffer;
 
 /********************
@@ -35,6 +38,11 @@ struct Lights {
 
     LightData pointLights[32];
     DirLightData dirLights[4];
+
+    Mat4 lightSpaceMatrix;
+    int shadowMapWidth;
+    int shadowMapHeight;
+    float padding2[2];
 };
 /**
  * 
@@ -135,6 +143,8 @@ private:
 
 public:
     DirectionalLight(LightingManager& lightingManager);
+
+    Mat4 getLightSpaceMatrix(const Vec3& sceneCenter, float sceneRadius) const;
 
     LightType getType() const override;
     uint32_t getId() const override;

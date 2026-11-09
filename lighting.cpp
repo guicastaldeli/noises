@@ -80,6 +80,7 @@ void PointLight::upload(UniformBuffer& ubo) const {
             break;
         }
     }
+    if(i < 0 || i >= 32) return;
 
     ubo.lights.pointLights[i].position[0] = position.x;
     ubo.lights.pointLights[i].position[1] = position.y;
@@ -95,6 +96,23 @@ void PointLight::upload(UniformBuffer& ubo) const {
  * *******/
 DirectionalLight::DirectionalLight(LightingManager& lightingManager) : Lighting(lightingManager) {
     id = static_cast<uint32_t>(IdGen::next("dlight"));
+}
+
+// Get Light Space Matrix
+Mat4 DirectionalLight::getLightSpaceMatrix(const Vec3& center, float radius) const {
+    Vec3 lightPos(center.x + direction.x * radius,
+                center.y + direction.y * radius,
+                center.z + direction.z * radius);
+
+    Vec3 up(0.0f, 1.0f, 0.0f);
+    float v = 0.99f;
+    if(std::fabs(direction.y) > v) up = Vec3(0.0f, 0.0f, 1.0f);
+
+    Mat4 lightView = Mat4::LookAt(lightPos, center, up);
+    Mat4 lightProj = Mat4::Ortho(-radius, radius,
+                                radius, radius,
+                                0.1f, radius * 2.0f);
+    return lightProj * lightView;
 }
 
 // Get Type
@@ -270,20 +288,35 @@ LightingManager& LightingManager::add(LightType type) {
  * 
  */
 void LightingManager::upload(UniformBuffer& ubo) {
-    // Ambient light
+    // Ambient Light
     if(ambientLight) {
         ambientLight->upload(ubo);
     } else {
         ubo.lights.ambientIntensity = 0.0f;
     }
 
-    // Point light
+    // Point Light
     PointLight::uploadCount(ubo, (int)pointLight.size());
     for(auto* p : pointLight) p->upload(ubo);
 
-    // Directional light
+    // Directional Light
     DirectionalLight::uploadCount(ubo, (int)directionalLight.size());
     for(auto& d : directionalLight) d->upload(ubo);
+    if(!directionalLight.empty()) {
+        Vec3 sceneCenter(15.0f, 0.0f, 15.0f);
+        float sceneRadius = 30.0f;
+        // TODO: change this later to fit inside the
+        // Boundary collider size... and calc the center
+        // dynamically of course...
+        Mat4 ls = directionalLight[0]->getLightSpaceMatrix(sceneCenter, sceneRadius);
+        for(int r = 0; r < 4; ++r)
+        for(int c = 0; c < 4; ++c) {
+            ubo.lights.lightSpaceMatrix.m[r][c] = ls.m[c][r];
+        }
+    }
+
+    ubo.lights.shadowMapWidth = SHADOW_MAP_WIDTH;
+    ubo.lights.shadowMapHeight = SHADOW_MAP_HEIGHT;
 }
 
 /**
