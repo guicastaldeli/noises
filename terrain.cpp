@@ -126,6 +126,7 @@ void Terrain::update() {
     mesh.setPosition(id, 15.0f, 1.0f, 15.0f);
     mesh.load(id, "cube");
     mesh.setTexture(id, texId);
+    
     Skybox::update();
 }
 

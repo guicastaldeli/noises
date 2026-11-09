@@ -371,8 +371,8 @@ void LightingManager::ShadowMap::createShadowSampler(VkDevice device) {
     samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
     samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
     samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
-    samplerInfo.compareEnable = VK_TRUE;
-    samplerInfo.compareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+    samplerInfo.compareEnable = VK_FALSE;
+    samplerInfo.compareOp = VK_COMPARE_OP_NEVER;
 
     if(vkCreateSampler(device, &samplerInfo, nullptr, &shadowSampler) != VK_SUCCESS) {
         throw std::runtime_error("failed to create shadow sampler!");

@@ -103,13 +103,18 @@ DirectionalLight::DirectionalLight(LightingManager& lightingManager) : Lighting(
 
 // Get Light Space Matrix
 Mat4 DirectionalLight::getLightSpaceMatrix(const Vec3& center, float radius) const {
-    Vec3 lightPos(center.x + direction.x * radius,
-                center.y + direction.y * radius,
-                center.z + direction.z * radius);
+    Vec3 dir = direction;
+    float len = std::sqrt(dir.x*dir.x + dir.y*dir.y + dir.z*dir.z);
+    int v1 = 1e-6f;
+    if(len > v1) { dir.x /= len; dir.y /= len; dir.z /= len; }
+    
+    Vec3 lightPos(center.x + dir.x * radius,
+                center.y + dir.y * radius,
+                center.z + dir.z * radius);
 
     Vec3 up(0.0f, 1.0f, 0.0f);
-    float v = 0.99f;
-    if(std::fabs(direction.y) > v) up = Vec3(0.0f, 0.0f, 1.0f);
+    float v2 = 0.99f;
+    if(std::fabs(direction.y) > v2) up = Vec3(0.0f, 0.0f, 1.0f);
 
     Mat4 lightView = Mat4::LookAt(lightPos, center, up);
     Mat4 lightProj = Mat4::Ortho(-radius, radius,
