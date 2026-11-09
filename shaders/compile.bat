@@ -17,15 +17,13 @@ if not defined GLSLC (
 )
 
 set "SRC_DIR=%~dp0"
-set "OUT_DIR=%BUILD_DIR%"
-if not exist "%OUT_DIR%" mkdir "%OUT_DIR%"
+set "OUT_DIR=%BUILD_DIR%\"
+if not exist "%BUILD_DIR%" mkdir "%BUILD_DIR%"
 
 echo [shaders] glslc  = %GLSLC%
 echo [shaders] source = %SRC_DIR%
 echo [shaders] output = %OUT_DIR%
 
-REM Mapping: <source-file>=<output-stage-name>
-REM Anything not listed here is NOT compiled.
 set "FAIL=0"
 for %%P in (
     "shader.vert=vert"

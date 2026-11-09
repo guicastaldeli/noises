@@ -1,3 +1,4 @@
+#define LIGHTING_IMPLEMENTATION
 #include <lighting.hpp>
 #include <mesh.hpp>
 #include <shader.hpp>
@@ -112,7 +113,7 @@ Mat4 DirectionalLight::getLightSpaceMatrix(const Vec3& center, float radius) con
 
     Mat4 lightView = Mat4::LookAt(lightPos, center, up);
     Mat4 lightProj = Mat4::Ortho(-radius, radius,
-                                radius, radius,
+                                -radius, radius,
                                 0.1f, radius * 2.0f);
     return lightProj * lightView;
 }

@@ -119,6 +119,13 @@ void Terrain::update() {
     mesh.setRotation(0, 0.0f, deltaTime, 0.0f);
     mesh.setRotation(1, deltaTime, 0.0f, 0.0f);
     mesh.setRotation(2, 0.0f, 0.0f, deltaTime);*/
+
+    TextureResult tex = mesh.getTextureLoader()->load("test.jpg");
+    uint32_t texId = tex.texId;
+    int id = 9999;
+    mesh.setPosition(id, 15.0f, 1.0f, 15.0f);
+    mesh.load(id, "cube");
+    mesh.setTexture(id, texId);
     Skybox::update();
 }
 
@@ -147,19 +154,6 @@ void Terrain::updateBoundary(const ChunkData& chunkData) {
  * 
  */
 void Terrain::render() {
-    TextureResult tex = mesh.getTextureLoader()->load("test.jpg");
-    uint32_t texId = tex.texId;
-    /*for(int i = 0; i < 5; i++) {
-        mesh.setPosition(i, i * -1.5f, 0.0f, 120.0f);
-        mesh.load(i, "cube");
-        mesh.setTexture(i, texId);
-    }*/
-
-    int id = 9999;
-    mesh.setPosition(id, 15.0f, 1.0f, 15.0f);
-    mesh.load(id, "cube");
-    mesh.setTexture(id, texId);
-
     Skybox::render();
 
     static const ChunkData cd{};

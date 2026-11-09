@@ -2,7 +2,6 @@
 #extension GL_EXT_nonuniform_qualifier : require
 
 #include "ubo.glsl"
-#include "lighting.glsl"
 
 layout(location = 0) in vec3 fragColor;
 layout(location = 1) in vec2 fragUv;
@@ -13,6 +12,8 @@ layout(location = 5) in vec3 fragNormal;
 layout(location = 6) flat in uint fragHasLit;
 
 layout(set = 1, binding = 0) uniform sampler2D tex[];
+
+#include "lighting.glsl"
 
 layout(location = 0) out vec4 outColor;
 

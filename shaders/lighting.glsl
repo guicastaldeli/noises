@@ -46,14 +46,14 @@ float calcShadow(vec4 fragPosLightSpace) {
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
     projCoords = projCoords * 0.5 + 0.5;
     if(projCoords.x < 0.0 || projCoords.x > 1.0 ||
-        projCorrds.y < 0.0 || projCoords.y > 1.0 ||
+        projCoords.y < 0.0 || projCoords.y > 1.0 ||
         projCoords.z < 0.0 || projCoords.z > 1.0)
     {
         return 0.0;
     }
 
     float closestDepth = texture(shadowMap, projCoords.xy).r;
-    float currentDepth = projCorrds.z;
+    float currentDepth = projCoords.z;
 
     vec3 lightDir = normalize(-ubo.dirLights[0].direction.xyz);
     float bias = max(0.05 * (1.0 - dot(fragNormal, lightDir)), 0.005);
@@ -69,3 +69,5 @@ float calcShadow(vec4 fragPosLightSpace) {
 
     return shadow / 9.0;
 }
+
+#endif

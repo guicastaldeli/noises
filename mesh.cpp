@@ -7,6 +7,7 @@
  * ***********************/
 #include <mesh.hpp>
 #include <cake.hpp>
+#include <shader.hpp>
 #include <camera.hpp>
 #include <cstring>
 
@@ -268,19 +269,7 @@ void Mesh::setInit(VkDevice device,
  * Set Instance Buffer
  */
 void Mesh::setInstanceBuffer(VkDeviceSize size) {
-    if(instanceBuffer != VK_NULL_HANDLE && instanceBufferSize >= size) return;
-    if(instanceBuffer != VK_NULL_HANDLE) {
-        vkDeviceWaitIdle(device);
-        vkDestroyBuffer(device, instanceBuffer, nullptr);
-        vkFreeMemory(device, instanceBufferMemory, nullptr);
-    }
-
-    createBuffer(size,
-                VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                instanceBuffer, instanceBufferMemory);
-    
-    instanceBufferSize = size;
+    if(size > instanceBufferRequestedSize) instanceBufferRequestedSize = size;
 }
 
 /**
@@ -303,14 +292,23 @@ void Mesh::load(uint32_t id, const std::string& type) {
 
     idToType[id] = type;
     
-    Transform& t = transforms.at(id);
-    Mat4 model = t.GetModelMatrix();
+    bool already = false;
+    for(const auto& e : pendingInstances) {
+        if(e.id == id) {
+            already = true;
+            break;
+        }
+    }
+    if(!already) {
+        Transform& t = transforms.at(id);
+        Mat4 model = t.GetModelMatrix();
 
-    InstanceEntry entry{};
-    entry.id = id;
-    entry.model = model;
-    entry.type = type;
-    pendingInstances.push_back(entry);
+        InstanceEntry entry{};
+        entry.id = id;
+        entry.model = model;
+        entry.type = type;
+        pendingInstances.push_back(entry);
+    }
 }
 
 /**
@@ -369,8 +367,10 @@ void Mesh::renderInstances(VkPipelineLayout layout, VkDescriptorSet* sets, uint3
     
     VkDeviceSize totalSize = 0;
     for(auto& [type, models] : byType) totalSize += sizeof(DataInstance) * models.size();
-
-    setInstanceBuffer(totalSize);
+    if(totalSize > instanceBufferSize) {
+        throw std::runtime_error("Mesh::renderInstances: instance buffer overflow "
+                                "(grow it in beginFrame)");
+    }
 
     void* mappedData = nullptr;
     vkMapMemory(device, instanceBufferMemory, 0, totalSize, 0, &mappedData);
@@ -433,6 +433,7 @@ void Mesh::init() {
     createDescriptorSets();
 
     texture->init(main.MAX_FRAMES_IN_FLIGHT);
+    lighting->init();
 }
 
 /**

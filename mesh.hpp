@@ -22,9 +22,9 @@
 #include <array>
 #include <cstddef>
 #include <lighting.hpp>
-#include <shader.cpp>
 
 class Main;
+class Shader;
 class Camera;
 
 /**********
@@ -192,6 +192,7 @@ private:
     VkBuffer instanceBuffer = VK_NULL_HANDLE;
     VkDeviceMemory instanceBufferMemory = VK_NULL_HANDLE;
     VkDeviceSize instanceBufferSize = 0;
+    VkDeviceSize instanceBufferRequestedSize = 0;
 
     uint32_t drawCalls = 0;
 
@@ -470,6 +471,21 @@ public:
      */
     void beginFrame() {
         drawCalls = 0;
+
+        const size_t stride = sizeof(Mat4) + sizeof(uint32_t) * 3;
+        VkDeviceSize needed = stride * VkDeviceSize(pendingInstances.size());
+        if(needed > instanceBufferSize) {
+            if(instanceBuffer != VK_NULL_HANDLE) {
+                vkDeviceWaitIdle(device);
+                vkDestroyBuffer(device, instanceBuffer, nullptr);
+                vkFreeMemory(device, instanceBufferMemory, nullptr);
+            }
+            createBuffer(needed,
+                        VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                        instanceBuffer, instanceBufferMemory);
+            instanceBufferSize = needed;
+        }
     }
 
     /**

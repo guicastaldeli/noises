@@ -155,10 +155,15 @@ void Main::Create() {
         throw std::runtime_error("failed to create pipeline layout!");
     }
 
+    VkPipelineShaderStageCreateInfo mainStages[] = {
+        stageInfos[0],
+        stageInfos[1]
+    };
+    int stageCount = 2;
     VkGraphicsPipelineCreateInfo pipelineInfo{};
     pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-    pipelineInfo.stageCount = static_cast<uint32_t>(stageInfos.size());
-    pipelineInfo.pStages = stageInfos.data();
+    pipelineInfo.stageCount = stageCount;
+    pipelineInfo.pStages = mainStages;
     pipelineInfo.pVertexInputState = &vertexInputInfo;
     pipelineInfo.pInputAssemblyState = &inputAssembly;
     pipelineInfo.pViewportState = &viewportState;

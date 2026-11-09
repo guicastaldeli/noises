@@ -324,12 +324,9 @@ void TextureLoader::init(uint32_t frames) {
     props2.pNext = &idxProps;
     vkGetPhysicalDeviceProperties2(physicalDevice, &props2);
 
+    const uint32_t reserve = 8;
     maxTextures = idxProps.maxPerStageDescriptorUpdateAfterBindSampledImages;
-    if(maxTextures == 0) {
-        throw std::runtime_error(
-            "TextureLoader: device does not support update-after-bind sampled images "
-            "(VK_EXT_descriptor_indexing required)");
-    }
+    if(maxTextures > reserve) maxTextures -= reserve;
 
     VkDescriptorSetLayoutBinding binding{};
     binding.binding = 0;
