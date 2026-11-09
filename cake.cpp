@@ -143,11 +143,13 @@ void Main::Create() {
     
     VkDescriptorSetLayout layouts[] = {
         mesh->getDescriptorSetLayout(),
-        mesh->getTextureLoader()->getDescriptorSetLayout()
+        mesh->getTextureLoader()->getDescriptorSetLayout(),
+        mesh->getLayouts()
     };
+    int layoutCount = 3;
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    pipelineLayoutInfo.setLayoutCount = 2;
+    pipelineLayoutInfo.setLayoutCount = layoutCount;
     pipelineLayoutInfo.pSetLayouts = layouts;
     if(vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
         throw std::runtime_error("failed to create pipeline layout!");

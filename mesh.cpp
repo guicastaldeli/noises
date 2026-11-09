@@ -14,7 +14,7 @@ Mesh::Mesh(Main& main, Camera& camera) :
     main(main),
     camera(camera) {
     texture = new TextureLoader(main);
-    lighting = new LightingManager(*this); 
+    lighting = new LightingManager(main, *this); 
 };
 Mesh::~Mesh() {
     delete lighting;    lighting = nullptr;

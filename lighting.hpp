@@ -10,6 +10,7 @@
 
 #define SHADOW_MAP_WIDTH 2048
 #define SHADOW_MAP_HEIGHT 2048
+#define SHADOW_MAP_SIZE 2048
 
 struct UniformBuffer;
 
@@ -163,6 +164,7 @@ public:
  */
 class LightingManager {
 private:
+    Main& main;
     Mesh& mesh;
 
     std::vector<std::unique_ptr<Lighting>> lights;
@@ -173,7 +175,7 @@ private:
     std::vector<DirectionalLight*> directionalLight;
 
 public:
-    LightingManager(Mesh& mesh);
+    LightingManager(Main& main, Mesh& mesh);
     ~LightingManager();
 
     LightingManager& add(LightType type);
@@ -187,11 +189,265 @@ public:
     LightingManager& setPosition(float x, float y, float z);
     LightingManager& setDirection(float x, float y, float z);
 
+    void init();
+
     void clear();
 
     AmbientLight* getAmbientLight() const { return ambientLight; }
     const std::vector<PointLight*>& getPointLight() const { return pointLight; }
     const std::vector<DirectionalLight*>& getDirectionalLight() const { return directionalLight; }
+
+    /***************************
+     * 
+     * Shadow Map
+     * 
+     ****************/
+    struct ShadowMap {
+        static inline VkFormat shadowFormat = VK_FORMAT_D32_SFLOAT;
+        static inline VkImage shadowImage = VK_NULL_HANDLE;
+        static inline VkDeviceMemory shadowImageMemory = VK_NULL_HANDLE;
+        static inline VkImageView shadowImageView = VK_NULL_HANDLE;
+        static inline VkFramebuffer shadowFramebuffer = VK_NULL_HANDLE;
+        static inline VkRenderPass shadowRenderPass = VK_NULL_HANDLE;
+
+        static inline VkSampler shadowSampler = VK_NULL_HANDLE;
+
+        static inline VkDescriptorSetLayout shadowDescriptorSetLayout = VK_NULL_HANDLE;
+        static inline VkDescriptorPool shadowDescriptorPool = VK_NULL_HANDLE;
+        static inline VkDescriptorSet shadowDescriptorSet = VK_NULL_HANDLE;
+
+        /****
+         * Create Shadow Resources
+         */
+        static void createShadowResources(VkDevice device, VkPhysicalDevice physicalDevice) {
+            VkImageCreateInfo imageInfo{};
+            imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+            imageInfo.imageType = VK_IMAGE_TYPE_2D;
+            imageInfo.extent.width = SHADOW_MAP_WIDTH;
+            imageInfo.extent.height = SHADOW_MAP_HEIGHT;
+            imageInfo.extent.depth = 1;
+            imageInfo.mipLevels = 1;
+            imageInfo.arrayLayers = 1;
+            imageInfo.format = shadowFormat;
+            imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+            imageInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+            imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+            imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+            if(vkCreateImage(device, &imageInfo, nullptr, &shadowImage) != VK_SUCCESS) {
+                throw std::runtime_error("failed to create shadow image!!");
+            }
+
+            VkMemoryRequirements memReq;
+            vkGetImageMemoryRequirements(device, shadowImage, &memReq);
+
+            VkMemoryAllocateInfo allocInfo{};
+            allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+            allocInfo.allocationSize = memReq.size;
+            allocInfo.memoryTypeIndex = [&]() -> uint32_t {
+                VkPhysicalDeviceMemoryProperties props;
+                vkGetPhysicalDeviceMemoryProperties(physicalDevice, &props);
+                for(uint32_t i = 0; i < props.memoryTypeCount; i++) {
+                    if((memReq.memoryTypeBits & (1 << i)) &&
+                        (props.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) {
+                        return i;
+                    }
+                }
+
+                throw std::runtime_error("no suitable memory for shadow image");
+            }();
+
+            if(vkAllocateMemory(device, &allocInfo, nullptr, &shadowImageMemory) != VK_SUCCESS) {
+                throw std::runtime_error("failed to allocate shadow image memory!");
+            }
+            vkBindImageMemory(device, shadowImage, shadowImageMemory, 0);
+
+            VkImageViewCreateInfo viewInfo{};
+            viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+            viewInfo.image = shadowImage;
+            viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+            viewInfo.format = shadowFormat;
+            viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+            viewInfo.subresourceRange.baseMipLevel = 0;
+            viewInfo.subresourceRange.levelCount = 1;
+            viewInfo.subresourceRange.baseArrayLayer = 0;
+            viewInfo.subresourceRange.layerCount = 1;
+
+            if(vkCreateImageView(device, &viewInfo, nullptr, &shadowImageView) != VK_SUCCESS) {
+                throw std::runtime_error("failed to create shadow image view!");
+            }
+        }
+
+        /**
+         * Create Shadow Render Pass
+         */
+        static void createShadowRenderPass(VkDevice device) {
+            VkAttachmentDescription depthAttachment{};
+            depthAttachment.format = shadowFormat;
+            depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+            depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+            depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+            depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+            depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+            depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+            depthAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+            VkAttachmentReference depthAttachmentRef{};
+            depthAttachmentRef.attachment = 0;
+            depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+            VkSubpassDescription subpass{};
+            subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+            subpass.colorAttachmentCount = 0;
+            subpass.pDepthStencilAttachment = &depthAttachmentRef;
+
+            VkSubpassDependency dependency{};
+            dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+            dependency.dstSubpass = 0;
+            dependency.srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+            dependency.dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+            dependency.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+            dependency.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+            VkRenderPassCreateInfo renderPassInfo{};
+            renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+            renderPassInfo.attachmentCount = 1;
+            renderPassInfo.pAttachments = &depthAttachment;
+            renderPassInfo.subpassCount = 1;
+            renderPassInfo.pSubpasses = &subpass;
+            renderPassInfo.dependencyCount = 1;
+            renderPassInfo.pDependencies = &dependency;
+
+            if(vkCreateRenderPass(device, &renderPassInfo, nullptr, &shadowRenderPass) != VK_SUCCESS) {
+                throw std::runtime_error("failed to create shadow render pass!");
+            }
+        }
+
+        /**
+         * Create Shadow Framebuffer
+         */
+        static void createShadowFramebuffer(VkDevice device) {
+            VkFramebufferCreateInfo framebufferInfo{};
+            framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+            framebufferInfo.renderPass = shadowRenderPass;
+            framebufferInfo.attachmentCount = 1;
+            framebufferInfo.pAttachments = &shadowImageView;
+            framebufferInfo.width = SHADOW_MAP_WIDTH;
+            framebufferInfo.height = SHADOW_MAP_HEIGHT;
+            framebufferInfo.layers = 1;
+
+            if(vkCreateFramebuffer(device, &framebufferInfo, nullptr, &shadowFramebuffer) != VK_SUCCESS) {
+                throw std::runtime_error("failed to create shadow framebuffer");
+            }
+        }
+
+        /**
+         * Create Shadow Sampler
+         */
+        static void createShadowSampler(VkDevice device) {
+            VkSamplerCreateInfo samplerInfo{};
+            samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+            samplerInfo.magFilter = VK_FILTER_LINEAR;
+            samplerInfo.minFilter = VK_FILTER_LINEAR;
+            samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+            samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+            samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+            samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+            samplerInfo.compareEnable = VK_TRUE;
+            samplerInfo.compareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+
+            if(vkCreateSampler(device, &samplerInfo, nullptr, &shadowSampler) != VK_SUCCESS) {
+                throw std::runtime_error("failed to create shadow sampler!");
+            }
+        }
+
+        /**
+         * Create Shadow Descriptor
+         */
+        static void createShadowDescriptor(VkDevice device) {
+            VkDescriptorSetLayoutBinding binding{};
+            binding.binding = 0;
+            binding.descriptorCount = 1;
+            binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            binding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+            VkDescriptorSetLayoutCreateInfo layoutInfo{};
+            layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+            layoutInfo.bindingCount = 1;
+            layoutInfo.pBindings = &binding;
+
+            if(vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &shadowDescriptorSetLayout) != VK_SUCCESS) {
+                throw std::runtime_error("failed to create shadow descriptor set layout!");
+            }
+
+            VkDescriptorPoolSize poolSize{};
+            poolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            poolSize.descriptorCount = 1;
+
+            VkDescriptorPoolCreateInfo poolInfo{};
+            poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+            poolInfo.pPoolSizes = &poolSize;
+            poolInfo.maxSets = 1;
+
+            if(vkCreateDescriptorPool(device, &poolInfo, nullptr, &shadowDescriptorPool) != VK_SUCCESS) {
+                throw std::runtime_error("failed to create shadow descriptor pool!");
+            }
+
+            VkDescriptorSetAllocateInfo allocInfo{};
+            allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+            allocInfo.descriptorPool = shadowDescriptorPool;
+            allocInfo.descriptorSetCount = 1;
+            allocInfo.pSetLayouts = &shadowDescriptorSetLayout;
+
+            if(vkAllocateDescriptorSets(device, &allocInfo, &shadowDescriptorSet) != VK_SUCCESS) {
+                throw std::runtime_error("failed to allocate shadow descriptor set!");
+            }
+
+            VkDescriptorImageInfo imageInfo{};
+            imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            imageInfo.imageView = shadowImageView;
+            imageInfo.sampler = shadowSampler;
+
+            VkWriteDescriptorSet write{};
+            write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            write.dstSet  =shadowDescriptorSet;
+            write.dstBinding = 0;
+            write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            write.descriptorCount = 1;
+            write.pImageInfo = &imageInfo;
+
+            vkUpdateDescriptorSets(device, 1, &write, 0, nullptr);
+        }
+
+        /**
+         * 
+         * Init
+         * 
+         */
+        static void init(VkDevice device, VkPhysicalDevice physicalDevice) {
+            createShadowResources(device, physicalDevice);
+            createShadowRenderPass(device);
+            createShadowFramebuffer(device);
+            createShadowSampler(device);
+            createShadowDescriptor(device);
+        } 
+
+        /**
+         * Clear
+         */
+        static void clear(VkDevice device) {
+            vkDestroyDescriptorPool(device, shadowDescriptorPool, nullptr);
+            vkDestroyDescriptorSetLayout(device, shadowDescriptorSetLayout, nullptr);
+            vkDestroySampler(device, shadowSampler, nullptr);
+            vkDestroyFramebuffer(device, shadowFramebuffer, nullptr);
+            vkDestroyRenderPass(device, shadowRenderPass, nullptr);
+            vkDestroyImageView(device, shadowImageView, nullptr);
+            vkDestroyImage(device, shadowImage, nullptr);
+            vkFreeMemory(device, shadowImageMemory, nullptr);
+        }
+    };
+/**
+ * 
+ */
 };
 /**
  * 

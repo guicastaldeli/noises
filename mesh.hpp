@@ -685,4 +685,14 @@ public:
     VkDescriptorSetLayout getDescriptorSetLayout() const {
         return descriptorSetLayout;
     }
+
+    /**********
+     * Get Layouts
+     *******/
+    VkDescriptorSetLayout getLayouts() {
+        VkDescriptorSetLayout map = {
+            LightingManager::ShadowMap::shadowDescriptorSetLayout
+        };
+        return map;
+    }
 };

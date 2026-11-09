@@ -1,6 +1,7 @@
 #include <lighting.hpp>
 #include <mesh.hpp>
 #include <stdexcept>
+#include <cake.hpp>
 #include <cstring>
 
 // ---------------------------------------
@@ -190,7 +191,9 @@ void Lighting::setIntensity(float i) {
  * Lighting Manager
  * 
  */
-LightingManager::LightingManager(Mesh& mesh) : mesh(mesh) {};
+LightingManager::LightingManager(Main& main, Mesh& mesh) : 
+    main(main),    
+    mesh(mesh) {};
 LightingManager::~LightingManager() {};
 
 /**
@@ -320,6 +323,15 @@ void LightingManager::upload(UniformBuffer& ubo) {
 }
 
 /**
+ * 
+ * Init
+ * 
+ */
+void LightingManager::init() {
+    ShadowMap::init(main.device, main.physicalDevice);
+}
+
+/**
  * Clear
  */
 void LightingManager::clear() {
@@ -328,4 +340,5 @@ void LightingManager::clear() {
     directionalLight.clear();
     ambientLight = nullptr;
     current = nullptr;
+    ShadowMap::clear(main.device);
 }
