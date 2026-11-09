@@ -18,22 +18,27 @@ if not defined GLSLC (
 
 set "SRC_DIR=%~dp0"
 set "OUT_DIR=%BUILD_DIR%"
-
 if not exist "%OUT_DIR%" mkdir "%OUT_DIR%"
 
 echo [shaders] glslc  = %GLSLC%
 echo [shaders] source = %SRC_DIR%
 echo [shaders] output = %OUT_DIR%
 
+REM Mapping: <source-file>=<output-stage-name>
+REM Anything not listed here is NOT compiled.
 set "FAIL=0"
-for %%e in (vert frag comp geom tesc tese) do (
-    for %%f in ("%SRC_DIR%*.%%e") do (
-        if exist "%%~f" (
-            set "OUT=%OUT_DIR%\%%~e.spv"
-            echo [shaders] %%~nxf -^> !OUT!
-            "%GLSLC%" "%%~f" -o "!OUT!" --target-env=vulkan1.2
-            if errorlevel 1 set "FAIL=1"
-        )
+for %%P in (
+    "shader.vert=vert"
+    "shader.frag=frag"
+    "shadow.vert=shadow"
+) do (
+    for /f "tokens=1,2 delims==" %%A in (%%P) do (
+        set "SRC=%%~A"
+        set "STAGE=%%~B"
+        set "OUT=%OUT_DIR%!STAGE!.spv"
+        echo [shaders] !SRC! -^> !OUT!
+        "%GLSLC%" "%SRC_DIR%!SRC!" -o "!OUT!" --target-env=vulkan1.2 -I "%SRC_DIR%"
+        if errorlevel 1 set "FAIL=1"
     )
 )
 
