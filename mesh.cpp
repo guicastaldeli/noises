@@ -10,11 +10,12 @@
 #include <camera.hpp>
 #include <cstring>
 
-Mesh::Mesh(Main& main, Camera& camera) : 
+Mesh::Mesh(Main& main, Shader& shader, Camera& camera) : 
     main(main),
+    shader(shader),
     camera(camera) {
     texture = new TextureLoader(main);
-    lighting = new LightingManager(main, *this); 
+    lighting = new LightingManager(main, shader, *this); 
 };
 Mesh::~Mesh() {
     delete lighting;    lighting = nullptr;
@@ -422,6 +423,15 @@ void Mesh::init() {
     createDescriptorSets();
 
     texture->init(main.MAX_FRAMES_IN_FLIGHT);
+}
+
+/**
+ * 
+ * Create
+ * 
+ */
+void Mesh::create() {
+    lighting->create();
 }
 
 /**

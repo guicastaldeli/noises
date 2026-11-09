@@ -19,8 +19,9 @@ private:
      * 
      **/
     inline static const ShaderStage Src[] = {
-        { VK_SHADER_STAGE_VERTEX_BIT,   "vert.spv" },
-        { VK_SHADER_STAGE_FRAGMENT_BIT, "frag.spv" }
+        { VK_SHADER_STAGE_VERTEX_BIT,   "vert.spv"   },
+        { VK_SHADER_STAGE_FRAGMENT_BIT, "frag.spv"   },
+        { VK_SHADER_STAGE_VERTEX_BIT,   "shadow.spv" },
     };
     /**
      * 

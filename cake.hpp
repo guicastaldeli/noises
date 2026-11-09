@@ -39,7 +39,7 @@ class Window;
 #endif
 
 class Main {
-private:
+public:
     /****** 
      * 
      * Dynamic States
@@ -52,8 +52,7 @@ private:
     /**
      * 
      */
-
-public:
+    
     /********* 
      * 
      * Queue Family

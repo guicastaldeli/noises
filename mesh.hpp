@@ -22,6 +22,7 @@
 #include <array>
 #include <cstddef>
 #include <lighting.hpp>
+#include <shader.cpp>
 
 class Main;
 class Camera;
@@ -195,7 +196,9 @@ private:
     uint32_t drawCalls = 0;
 
     Main& main;
+    Shader& shader;
     Camera& camera;
+
     TextureLoader* texture = nullptr;
     LightingManager* lighting = nullptr;
 
@@ -420,7 +423,7 @@ private:
     /*********** */
 
 public:
-    Mesh(Main& main, Camera& camera);
+    Mesh(Main& main, Shader& shader, Camera& camera);
     ~Mesh();
 
     inline static constexpr size_t kVertexStride = sizeof(Vertex) / sizeof(float);
@@ -453,6 +456,7 @@ public:
     void setInstanceBuffer(VkDeviceSize size);
     void load(uint32_t id, const std::string& type);
     void init();
+    void create();
     void render();
 
     void cleanup();

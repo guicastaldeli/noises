@@ -17,7 +17,7 @@ Main::Main() {
     shader      = new Shader(*this);
     camera      = new Camera(*this, *tick);
     input       = new Input(*this, *window);
-    mesh        = new Mesh(*this, *camera);
+    mesh        = new Mesh(*this, *shader, *camera);
     collision   = new CollisionManager(*tick, *mesh);
     terrain     = new Terrain(*tick, *mesh, *collision);
     data        = new Data(*terrain);
@@ -174,6 +174,8 @@ void Main::Create() {
     if(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
         throw std::runtime_error("failed to create graphics pipeline!");
     }
+
+    mesh->create();
 }
 
 /**

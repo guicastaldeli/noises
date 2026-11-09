@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <vulkan/vulkan.h>
+#include <shader.hpp>
 #include <unordered_map>
 
 #define SHADOW_MAP_WIDTH 2048
@@ -165,6 +167,7 @@ public:
 class LightingManager {
 private:
     Main& main;
+    Shader& shader;
     Mesh& mesh;
 
     std::vector<std::unique_ptr<Lighting>> lights;
@@ -175,7 +178,7 @@ private:
     std::vector<DirectionalLight*> directionalLight;
 
 public:
-    LightingManager(Main& main, Mesh& mesh);
+    LightingManager(Main& main, Shader& shader, Mesh& mesh);
     ~LightingManager();
 
     LightingManager& add(LightType type);
@@ -190,6 +193,7 @@ public:
     LightingManager& setDirection(float x, float y, float z);
 
     void init();
+    void create();
 
     void clear();
 
@@ -216,10 +220,13 @@ public:
         static inline VkDescriptorPool shadowDescriptorPool = VK_NULL_HANDLE;
         static inline VkDescriptorSet shadowDescriptorSet = VK_NULL_HANDLE;
 
+        static inline VkPipeline shadowPipeline = VK_NULL_HANDLE;
+        static inline VkPipelineLayout shadowPipelineLayout = VK_NULL_HANDLE;
+        
         /****
          * Create Shadow Resources
          */
-        static void createShadowResources(VkDevice device, VkPhysicalDevice physicalDevice) {
+        static void createShadowResources(Main main) {
             VkImageCreateInfo imageInfo{};
             imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
             imageInfo.imageType = VK_IMAGE_TYPE_2D;
@@ -233,19 +240,19 @@ public:
             imageInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
             imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
             imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-            if(vkCreateImage(device, &imageInfo, nullptr, &shadowImage) != VK_SUCCESS) {
+            if(vkCreateImage(main.device, &imageInfo, nullptr, &shadowImage) != VK_SUCCESS) {
                 throw std::runtime_error("failed to create shadow image!!");
             }
 
             VkMemoryRequirements memReq;
-            vkGetImageMemoryRequirements(device, shadowImage, &memReq);
+            vkGetImageMemoryRequirements(main.device, shadowImage, &memReq);
 
             VkMemoryAllocateInfo allocInfo{};
             allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
             allocInfo.allocationSize = memReq.size;
             allocInfo.memoryTypeIndex = [&]() -> uint32_t {
                 VkPhysicalDeviceMemoryProperties props;
-                vkGetPhysicalDeviceMemoryProperties(physicalDevice, &props);
+                vkGetPhysicalDeviceMemoryProperties(main.physicalDevice, &props);
                 for(uint32_t i = 0; i < props.memoryTypeCount; i++) {
                     if((memReq.memoryTypeBits & (1 << i)) &&
                         (props.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) {
@@ -256,10 +263,10 @@ public:
                 throw std::runtime_error("no suitable memory for shadow image");
             }();
 
-            if(vkAllocateMemory(device, &allocInfo, nullptr, &shadowImageMemory) != VK_SUCCESS) {
+            if(vkAllocateMemory(main.device, &allocInfo, nullptr, &shadowImageMemory) != VK_SUCCESS) {
                 throw std::runtime_error("failed to allocate shadow image memory!");
             }
-            vkBindImageMemory(device, shadowImage, shadowImageMemory, 0);
+            vkBindImageMemory(main.device, shadowImage, shadowImageMemory, 0);
 
             VkImageViewCreateInfo viewInfo{};
             viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -272,7 +279,7 @@ public:
             viewInfo.subresourceRange.baseArrayLayer = 0;
             viewInfo.subresourceRange.layerCount = 1;
 
-            if(vkCreateImageView(device, &viewInfo, nullptr, &shadowImageView) != VK_SUCCESS) {
+            if(vkCreateImageView(main.device, &viewInfo, nullptr, &shadowImageView) != VK_SUCCESS) {
                 throw std::runtime_error("failed to create shadow image view!");
             }
         }
@@ -419,17 +426,101 @@ public:
         }
 
         /**
+         * Create Shadow Pipeline
+         */
+        static void createShadowPipeline(Main main, Shader shader, Mesh mesh) {
+            VkPipelineShaderStageCreateInfo shadowStage{};
+            const auto& stages = shader.getStageInfos();
+            shadowStage = stages[2];
+
+            VkPipelineVertexInputStateCreateInfo vertexInputInfo = mesh.getVertexInputState();
+
+            VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
+            inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+            inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+
+            VkPipelineViewportStateCreateInfo viewportState{};
+            viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+            viewportState.viewportCount = 1;
+            viewportState.scissorCount = 1;
+
+            VkPipelineRasterizationStateCreateInfo rasterizer{};
+            rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+            rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
+            rasterizer.lineWidth = 1.0f;
+            rasterizer.cullMode = VK_CULL_MODE_NONE;
+            rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+
+            VkPipelineMultisampleStateCreateInfo multisampling{};
+            multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+            multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+
+            VkPipelineDepthStencilStateCreateInfo depthStencil{};
+            depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+            depthStencil.depthTestEnable = VK_TRUE;
+            depthStencil.depthWriteEnable = VK_TRUE;
+            depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
+
+            VkPipelineColorBlendStateCreateInfo colorBlending{};
+            colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+            colorBlending.attachmentCount = 0;
+
+            VkPipelineDynamicStateCreateInfo dynamicState{};
+            dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+            dynamicState.dynamicStateCount = static_cast<uint32_t>(main.dynamicStates.size());
+            dynamicState.pDynamicStates = main.dynamicStates.data();
+
+            VkDescriptorSetLayout layouts[] = { mesh.getDescriptorSetLayout() };
+            VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+            pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+            pipelineLayoutInfo.setLayoutCount = 1;
+            pipelineLayoutInfo.pSetLayouts = layouts;
+            if(vkCreatePipelineLayout(main.device, &pipelineLayoutInfo, nullptr, &shadowPipelineLayout) != VK_SUCCESS) {
+                throw std::runtime_error("failed to create shadow pipeline layout!");
+            }
+
+            VkGraphicsPipelineCreateInfo pipelineInfo{};
+            pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+            pipelineInfo.stageCount = 1;
+            pipelineInfo.pStages = &shadowStage;
+            pipelineInfo.pVertexInputState = &vertexInputInfo;
+            pipelineInfo.pInputAssemblyState = &inputAssembly;
+            pipelineInfo.pViewportState = &viewportState;
+            pipelineInfo.pRasterizationState = &rasterizer;
+            pipelineInfo.pMultisampleState = &multisampling;
+            pipelineInfo.pDepthStencilState = &depthStencil;
+            pipelineInfo.pColorBlendState = &colorBlending;
+            pipelineInfo.pDynamicState = &dynamicState;
+            pipelineInfo.layout = shadowPipelineLayout;
+            pipelineInfo.renderPass = shadowRenderPass;
+            pipelineInfo.subpass = 0;
+
+            if(vkCreateGraphicsPipelines(main.device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &shadowPipeline) != VK_SUCCESS) {
+                throw std::runtime_error("failed to create shadow graphics pipeline...");
+            }
+        }
+
+        /**
          * 
          * Init
          * 
          */
-        static void init(VkDevice device, VkPhysicalDevice physicalDevice) {
-            createShadowResources(device, physicalDevice);
-            createShadowRenderPass(device);
-            createShadowFramebuffer(device);
-            createShadowSampler(device);
-            createShadowDescriptor(device);
-        } 
+        static void init(Main main) {
+            createShadowResources(main);
+            createShadowRenderPass(main.device);
+            createShadowFramebuffer(main.device);
+            createShadowSampler(main.device);
+            createShadowDescriptor(main.device);
+        }
+
+        /**
+         * 
+         * Create
+         * 
+         */
+        static void create(Main main, Shader shader, Mesh mesh) {
+            createShadowPipeline(main, shader, mesh);
+        }
 
         /**
          * Clear
