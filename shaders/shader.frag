@@ -36,6 +36,28 @@ void main() {
     vec4 fragPosLightSpace = ubo.lightSpaceMatrix * vec4(fragPosWorld, 1.0);
     float shadow = calcShadow(fragPosLightSpace);
     
-    outColor = vec4(mix(ambientLightColor, setAmbientLight(baseColor), shadow), 1.0);
+    vec3 litColor = ambientLightColor;
+    vec3 shadowColor = baseColor.rgb * 0.1 + vec3(0.05, 0.05, 0.15);
+    vec3 finalColor = mix(litColor, shadowColor, shadow);
+
+    outColor = vec4(finalColor, 1.0);
     return;
 }
+/* TEST SHADOWS
+void main() {
+    vec4 baseColor = vec4(fragColor, 1.0);
+    if(fragHasTexture != 0u) baseColor = texture(tex[nonuniformEXT(fragTexIndex)], fragUv);
+    if(fragHasLit == 0u) {
+        outColor = baseColor;
+        return;
+    }
+
+    vec4 fragPosLightSpace = ubo.lightSpaceMatrix * vec4(fragPosWorld, 1.0);
+    float shadow = calcShadow(fragPosLightSpace);
+    
+    if(shadow > 0.5) {
+        outColor = vec4(0.7216, 0.1412, 0.1412, 1.0);
+    } else {
+        outColor = vec4(0.0, 0.0, 0.0, 1.0);
+    }
+}*/

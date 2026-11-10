@@ -262,7 +262,7 @@ void Main::Init() {
 
     lights->add(LightType::DIRECTIONAL)
       .setColor("#fdfdfd")
-      .setDirection(-10.0f, -10.0f, -10.0f) 
+      .setDirection(15.0f, -15.0f, 15.0f) 
       .setIntensity(1.0f);
     /*lights->add(LightType::POINT)
         .setColor("#FFFFFF")
