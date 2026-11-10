@@ -130,11 +130,15 @@ uint32_t TextureLoader::load(uint32_t id, const std::string& path) {
         ai.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
         ai.allocationSize = req.size;
         ai.memoryTypeIndex = findMemoryType(physicalDevice, req.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-        if(vkAllocateMemory(device, &ai, nullptr, &imageMemory) != VK_SUCCESS) {
+        VkResult r = vkAllocateMemory(device, &ai, nullptr, &imageMemory);
+        if(r != VK_SUCCESS) {
             vkDestroyImage(device, image, nullptr);
             vkDestroyBuffer(device, stagingBuffer, nullptr);
             vkFreeMemory(device, stagingMemory, nullptr);
-            throw std::runtime_error("TextureLoader: failed to allocate image memory");
+            throw std::runtime_error("TextureLoader: vkAllocateMemory failed, VkResult="
+                + std::to_string((int)r) + " size=" + std::to_string(req.size)
+                + " typeIndex=" + std::to_string(ai.memoryTypeIndex)
+                + " path=" + path);
         }
         vkBindImageMemory(device, image, imageMemory, 0);
     }
@@ -384,8 +388,11 @@ void TextureLoader::init(uint32_t frames) {
 }
 
 TextureResult TextureLoader::load(const std::string& path) {
+    auto it = pathToTexId.find(path);
+    if(it != pathToTexId.end()) return { it->second, it->second };
     uint32_t generatedId = nextMeshId++;
     uint32_t texId = load(generatedId, path);
+    pathToTexId[path] = texId;
     return { generatedId, texId };
 }
 
@@ -403,6 +410,7 @@ void TextureLoader::cleanup() {
     }
     textures.clear();
     toTexId.clear();
+    pathToTexId.clear();
     
     if(descriptorPool != VK_NULL_HANDLE) {
         vkDestroyDescriptorPool(device, descriptorPool, nullptr);

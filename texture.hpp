@@ -39,6 +39,7 @@ private:
 
     std::unordered_map<uint32_t, uint32_t> toTexId;
     std::unordered_map<uint32_t, Texture> textures;
+    std::unordered_map<std::string, uint32_t> pathToTexId;
 
     uint32_t nextMeshId = 1;
     uint32_t maxTextures = 0;
