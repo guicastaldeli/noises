@@ -315,7 +315,7 @@ void LightingManager::upload(UniformBuffer& ubo) {
     for(auto& d : directionalLight) d->upload(ubo);
     if(!directionalLight.empty()) {
         Vec3 sceneCenter(15.0f, 0.0f, 15.0f);
-        float sceneRadius = 1.0f;
+        float sceneRadius = 30.0f;
         // TODO: change this later to fit inside the
         // Boundary collider size... and calc the center
         // dynamically of course...
