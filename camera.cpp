@@ -9,6 +9,27 @@
  * RigidBody
  * 
  * *****/
+// Pause
+void RigidBody::pause() {
+    paused = true;
+    velocity = Vec3(0, 0, 0);
+}
+
+// Resume
+void RigidBody::resume() {
+    paused = false;
+}
+
+// Toggle
+void RigidBody::toggle() {
+    paused ? resume() : pause();
+}
+
+// Is Paused
+bool RigidBody::isPaused() const {
+    return paused;
+} 
+
 // Set Camera
 void RigidBody::setCamera(const Camera& c) {
     camera = &c;
@@ -51,6 +72,8 @@ void RigidBody::setSize(const Vec3& s) {
 
 // Move
 void RigidBody::move(Vec3 m, float moveSpeed) {
+    if(paused) return;
+
     float v = 1e-6f;
     float len = std::sqrt(m.x*m.x + m.y*m.y + m.z*m.z);
     if(len > v) {
@@ -63,7 +86,7 @@ void RigidBody::move(Vec3 m, float moveSpeed) {
 
 // Update
 void RigidBody::update() {
-    if(!tick) return;
+    if(paused || !tick) return;
     float deltaTime = tick->GetDeltaTime() * 0.001f;
     position += velocity * deltaTime;
 }
@@ -264,11 +287,45 @@ void Camera::move() {
 }
 
 /**
+ * Pause
+ */
+// Pause
+void Camera::pause() {
+    paused = true;
+}
+
+// Is Paused
+bool Camera::isPaused() const {
+    return paused;
+}
+
+/**
+ * Resume
+ */
+void Camera::resume() {
+    paused = false;
+}
+
+/**
+ * Toggle
+ */
+void Camera::toggle() {
+    paused = !paused;
+}
+
+/**
  * 
  * Update
  * 
  */
 void Camera::update() {
+    if(paused) {
+        rigidBody.pause();
+        set();
+        return;
+    }
+    rigidBody.resume();
+    
     if(input->isCursorCaptured()) {
         yaw -= static_cast<float>(input->mouseDeltaX()) * MOUSE_SENSV;
         pitch -= static_cast<float>(input->mouseDeltaY()) * MOUSE_SENSV;

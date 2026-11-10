@@ -15,6 +15,7 @@ private:
     Vec3 position{ 0, 0, 0 };
     Vec3 velocity{ 0, 0, 0 };
     Vec3 size{ 1, 1, 1 };
+    bool paused = false;
 
     const Camera* camera = nullptr;
     const Tick* tick = nullptr;
@@ -24,6 +25,11 @@ public:
     RigidBody(const Vec3& position, const Vec3& size) :
                 position(position),
                 size(size) {};
+
+    void pause();
+    void resume();
+    void toggle();
+    bool isPaused() const;
 
     void setCamera(const Camera& c);
     void setTick(const Tick& t);
@@ -69,6 +75,8 @@ private:
     Vec3 right;
     Vec3 up;
 
+    bool paused = false;
+
 public:
     Camera(Main& main, Tick& tick);
     ~Camera();
@@ -89,6 +97,11 @@ public:
     Tick& getTick() const;
 
     void setInput(Input* input); 
+
+    void pause();
+    void resume();
+    void toggle();
+    bool isPaused() const;
 
     void setPosition();
     void setYawPitch();

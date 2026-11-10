@@ -119,6 +119,7 @@ void Input::setBindings() {
     bind(Bindings::UP,          GLFW_KEY_SPACE);
     bind(Bindings::DOWN,        GLFW_KEY_LEFT_SHIFT);
     bind(Bindings::CAPTURE,     GLFW_KEY_ESCAPE);
+    bind(Bindings::TOGGLE,      GLFW_KEY_E);
 }
 
 /**
@@ -206,6 +207,11 @@ void Input::setCallbacks() {
  * 
  */
 void Input::update() {
+    if(pressed(Bindings::TOGGLE)) {
+        main.camera->toggle();
+        main.ui->visible = main.camera->isPaused();
+        setCursorCaptured(!main.camera->isPaused());
+    }
     if(m_cursorCaptured) {
         if(pressed(Bindings::CAPTURE)) {
             setCursorCaptured(false);

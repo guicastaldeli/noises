@@ -21,6 +21,7 @@ private:
 public:
     UI(Main& main, Window& window) :  main(main), window(window) {};
     ~UI() {}
+    bool visible = true;
     /*** Pool ****/template<typename T> VkDescriptorPool P() {
         auto& m = static_cast<T&>(main);
         VkDescriptorPoolCreateInfo poolInfo{};
@@ -65,6 +66,8 @@ public:
         ImGui_ImplVulkan_Init(&initInfo);
     }
     /*** Render ***/template<typename T>void R(VkCommandBuffer cmd, T& data) {
+        if(!visible) return;
+        
         ImGui_ImplVulkan_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
