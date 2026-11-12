@@ -66,9 +66,7 @@ vec3 calcShadow(vec4 fragPosLightSpace) {
     for(int x = -1; x <= 1; ++x) {
         for(int y = -1; y <= 1; ++y) {
             float depth = texture(shadowMap, projCoords.xy + vec2(float(x), float(y)) * texelSize).r;
-            
-            // Standard check
-            shadow += (currentDepth + bias < depth) ? 1.0 : 0.0;
+            shadow += (currentDepth - bias > depth) ? 1.0 : 0.0;
         }
     }
 
