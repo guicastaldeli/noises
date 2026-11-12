@@ -18,37 +18,26 @@ layout(set = 1, binding = 0) uniform sampler2D tex[];
 layout(location = 0) out vec4 outColor;
 
 void main() {
-    // Get the base color (either the mesh's vertex color or the texture)
     vec4 baseColor = vec4(fragColor, 1.0);
     if(fragHasTexture != 0u) baseColor = texture(tex[nonuniformEXT(fragTexIndex)], fragUv);
-    
+
     vec3 viewDir = normalize(ubo.cameraPos.xyz - fragPosWorld);
     if(fragHasLit == 0u) {
         outColor = baseColor;
         return;
     }
 
-    /* Ambient Light */ vec3 ambientLightColor = setAmbientLight(baseColor);
-    /* Directional Light */ setDirectionalLight(baseColor, ambientLightColor);
-    /* Point Light */ setPointLight(baseColor, ambientLightColor);
+    /*  Ambient Light Color  */ vec3 ambientLightColor = setAmbientLight(baseColor);
+    /*   Directional Light   */ setDirectionalLight(baseColor, ambientLightColor);
+    /*      Point Light      */ setPointLight(baseColor, ambientLightColor);
 
     vec4 fragPosLightSpace = ubo.lightSpaceMatrix * vec4(fragPosWorld, 1.0);
     
-    // Get the raw shadow data
     vec3 shadowData = calcShadow(fragPosLightSpace);
-    
-    // --- DEBUG OUTPUT ---
-    // shadowData = (shadow, closestDepth, currentDepth)
-    // Multiply the base color by the raw debug data
-    outColor = vec4(baseColor.rgb * shadowData, 1.0);
-    
-    return;
-    // --------------------
-
-    // Standard lighting code
     float shadow = shadowData.x;
+
     vec3 litColor = ambientLightColor;
-    vec3 shadowColor = vec3(0.0, 0.0, 0.0);
+    vec3 shadowColor = setAmbientLight(baseColor);
     vec3 finalColor = mix(litColor, shadowColor, shadow);
 
     outColor = vec4(finalColor, 1.0);
