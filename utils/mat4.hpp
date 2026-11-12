@@ -73,16 +73,19 @@ struct Mat4 {
         return mat;
     }
     static Mat4 Ortho(float left, float right, float bottom, float top, float nearZ, float farZ) {
-        Mat4 m;
-        m.m[0][0] = 2.0f / (right - left);
-        m.m[1][1] = 2.0f / (top - bottom);
-        m.m[2][2] = 1.0f / (nearZ - farZ);
-        m.m[3][0] = -(right + left) / (right - left);
-        m.m[3][1] = -(top + bottom) / (top - bottom);
-        m.m[3][2] = nearZ / (nearZ - farZ);
-        m.m[3][3] = 1.0f;
-        return m;
-    }
+    Mat4 m; // zero-initialized
+    m.m[0][0] = 2.0f / (right - left);
+    m.m[1][1] = 2.0f / (top - bottom);
+    
+    // Vulkan ZO (0 to 1) range
+    m.m[2][2] = 1.0f / (nearZ - farZ);
+    m.m[3][2] = nearZ / (nearZ - farZ);
+    
+    m.m[3][0] = -(right + left) / (right - left);
+    m.m[3][1] = -(top + bottom) / (top - bottom);
+    m.m[3][3] = 1.0f;
+    return m;
+}
     static Mat4 LookAt(const Vec3& eye, const Vec3& center, const Vec3& up) {
         Vec3 f = Vec3(center.x - eye.x, center.y - eye.y, center.z - eye.z);
         float fl = std::sqrt(f.x*f.x + f.y*f.y + f.z*f.z);

@@ -105,24 +105,24 @@ DirectionalLight::DirectionalLight(LightingManager& lightingManager) : Lighting(
 Mat4 DirectionalLight::getLightSpaceMatrix(const Vec3& center, float radius) const {
     Vec3 dir = direction;
     float len = std::sqrt(dir.x*dir.x + dir.y*dir.y + dir.z*dir.z);
-    int v1 = 1e-6f;
-    if(len > v1) { dir.x /= len; dir.y /= len; dir.z /= len; }
+    if(len > 1e-6f) { dir.x /= len; dir.y /= len; dir.z /= len; }
     
-    Vec3 lightPos(center.x + dir.x * radius,
-                center.y + dir.y * radius,
-                center.z + dir.z * radius);
+    // Light position must be ON THE OPPOSITE SIDE of the light direction
+    Vec3 lightPos(center.x - dir.x * (radius * 2.0f),
+                  center.y - dir.y * (radius * 2.0f),
+                  center.z - dir.z * (radius * 2.0f));
 
     Vec3 up(0.0f, 1.0f, 0.0f);
-    float v2 = 0.99f;
-    if(std::fabs(direction.y) > v2) up = Vec3(0.0f, 0.0f, 1.0f);
+    if(std::fabs(dir.y) > 0.99f) up = Vec3(0.0f, 0.0f, 1.0f);
 
     Mat4 lightView = Mat4::LookAt(lightPos, center, up);
-    Mat4 lightProj = Mat4::Ortho(-radius, radius,
-                                -radius, radius,
-                                0.1f, radius * 2.0f);
+    
+    // Tight ortho box
+    Mat4 lightProj = Mat4::Ortho(-radius, radius, 
+                                 -radius, radius, 
+                                 0.1f, radius * 4.0f);
     return lightProj * lightView;
 }
-
 // Get Type
 LightType DirectionalLight::getType() const {
     return LightType::DIRECTIONAL;
@@ -315,14 +315,14 @@ void LightingManager::upload(UniformBuffer& ubo) {
     for(auto& d : directionalLight) d->upload(ubo);
     if(!directionalLight.empty()) {
         Vec3 sceneCenter(15.0f, 0.0f, 15.0f);
-        float sceneRadius = 30.0f;
+        float sceneRadius = 21.2f; 
         // TODO: change this later to fit inside the
         // Boundary collider size... and calc the center
         // dynamically of course...
         Mat4 ls = directionalLight[0]->getLightSpaceMatrix(sceneCenter, sceneRadius);
         for(int r = 0; r < 4; ++r)
         for(int c = 0; c < 4; ++c) {
-            ubo.lights.lightSpaceMatrix.m[r][c] = ls.m[c][r];
+            ubo.lights.lightSpaceMatrix.m[r][c] = ls.m[c][r]; 
         }
     }
 

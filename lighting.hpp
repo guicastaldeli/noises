@@ -313,7 +313,9 @@ void LightingManager::ShadowMap::createShadowRenderPass(VkDevice device) {
     depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
     depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    
+    // Start in shader read-only, and end in shader read-only
+    depthAttachment.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     depthAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
     VkAttachmentReference depthAttachmentRef{};
@@ -325,13 +327,26 @@ void LightingManager::ShadowMap::createShadowRenderPass(VkDevice device) {
     subpass.colorAttachmentCount = 0;
     subpass.pDepthStencilAttachment = &depthAttachmentRef;
 
-    VkSubpassDependency dependency{};
-    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-    dependency.dstSubpass = 0;
-    dependency.srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-    dependency.dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-    dependency.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
-    dependency.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+    // Two dependencies to handle the read->write and write->read transitions correctly
+    std::array<VkSubpassDependency, 2> dependencies{};
+
+    // 1. External -> Subpass 0 (Wait for the previous frame's read to finish, transition to write)
+    dependencies[0].srcSubpass      = VK_SUBPASS_EXTERNAL;
+    dependencies[0].dstSubpass      = 0;
+    dependencies[0].srcStageMask    = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    dependencies[0].dstStageMask    = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+    dependencies[0].srcAccessMask   = VK_ACCESS_SHADER_READ_BIT;
+    dependencies[0].dstAccessMask   = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+    dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+    // 2. Subpass 0 -> External (Wait for the write to finish, transition back to read)
+    dependencies[1].srcSubpass      = 0;
+    dependencies[1].dstSubpass      = VK_SUBPASS_EXTERNAL;
+    dependencies[1].srcStageMask    = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+    dependencies[1].dstStageMask    = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    dependencies[1].srcAccessMask   = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+    dependencies[1].dstAccessMask   = VK_ACCESS_SHADER_READ_BIT;
+    dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
     VkRenderPassCreateInfo renderPassInfo{};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
@@ -339,8 +354,8 @@ void LightingManager::ShadowMap::createShadowRenderPass(VkDevice device) {
     renderPassInfo.pAttachments = &depthAttachment;
     renderPassInfo.subpassCount = 1;
     renderPassInfo.pSubpasses = &subpass;
-    renderPassInfo.dependencyCount = 1;
-    renderPassInfo.pDependencies = &dependency;
+    renderPassInfo.dependencyCount = static_cast<uint32_t>(dependencies.size());
+    renderPassInfo.pDependencies = dependencies.data();
 
     if(vkCreateRenderPass(device, &renderPassInfo, nullptr, &shadowRenderPass) != VK_SUCCESS) {
         throw std::runtime_error("failed to create shadow render pass!");
@@ -520,6 +535,34 @@ void LightingManager::ShadowMap::create(Main& main, Shader& shader, Mesh& mesh) 
 }
 
 void LightingManager::ShadowMap::render(VkCommandBuffer cmd, Mesh& mesh) {
+    // 1. Manually transition the image layout to DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+    // This ensures we don't get garbage data on the first frame.
+    VkImageMemoryBarrier barrier{};
+    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED; // We don't care about previous contents
+    barrier.newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.image = shadowImage;
+    barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+    barrier.subresourceRange.baseMipLevel = 0;
+    barrier.subresourceRange.levelCount = 1;
+    barrier.subresourceRange.baseArrayLayer = 0;
+    barrier.subresourceRange.layerCount = 1;
+    barrier.srcAccessMask = 0;
+    barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+    vkCmdPipelineBarrier(
+        cmd,
+        VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 
+        VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+        0,
+        0, nullptr,
+        0, nullptr,
+        1, &barrier
+    );
+
+    // 2. Begin the Shadow Render Pass
     VkRenderPassBeginInfo rp{};
     rp.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     rp.renderPass = shadowRenderPass;
@@ -528,26 +571,52 @@ void LightingManager::ShadowMap::render(VkCommandBuffer cmd, Mesh& mesh) {
     rp.renderArea.extent = {SHADOW_MAP_WIDTH, SHADOW_MAP_HEIGHT};
 
     VkClearValue clear{};
-    clear.depthStencil = {1.0f, 0};
+    // Clear to 1.0f (far plane) so everything is initially "lit"
+    clear.depthStencil = {1.0f, 0}; 
     rp.clearValueCount = 1;
     rp.pClearValues = &clear;
 
     vkCmdBeginRenderPass(cmd, &rp, VK_SUBPASS_CONTENTS_INLINE);
+    
+    // 3. Bind the Shadow Pipeline
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, shadowPipeline);
 
+    // 4. Set the Viewport and Scissor
     VkViewport vp{};
-    vp.width = SHADOW_MAP_WIDTH;
-    vp.height = SHADOW_MAP_HEIGHT;
+    vp.x = 0.0f;
+    vp.y = 0.0f;
+    vp.width = (float)SHADOW_MAP_WIDTH;
+    vp.height = (float)SHADOW_MAP_HEIGHT;
     vp.minDepth = 0.0f;
     vp.maxDepth = 1.0f;
     vkCmdSetViewport(cmd, 0, 1, &vp);
 
     VkRect2D sc{};
+    sc.offset = {0, 0};
     sc.extent = {SHADOW_MAP_WIDTH, SHADOW_MAP_HEIGHT};
     vkCmdSetScissor(cmd, 0, 1, &sc);
 
+    // 5. Render all meshes into the shadow map
     mesh.render(true);
+    
     vkCmdEndRenderPass(cmd);
+
+    // 6. Manually transition the image back to SHADER_READ_ONLY_OPTIMAL
+    // This is required so the main pass can safely sample it.
+    barrier.oldLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    barrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+    barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+    vkCmdPipelineBarrier(
+        cmd,
+        VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
+        VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+        0,
+        0, nullptr,
+        0, nullptr,
+        1, &barrier
+    );
 }
 
 void LightingManager::ShadowMap::clear(VkDevice device) {

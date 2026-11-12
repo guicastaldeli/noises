@@ -98,7 +98,7 @@ void Terrain::upload(const ChunkData& chunkData) {
                     origin.y + float(y),
                     origin.z + float(z));
         mesh.load(id, MESH_TYPE);
-        mesh.setTexture(id, texId);
+        //mesh.setTexture(id, texId);
         if(trackCollision) {
             collision.set(id, CollisionType::STATIC_COLLIDER);
         }
