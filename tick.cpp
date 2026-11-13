@@ -24,6 +24,11 @@ float Tick::GetDeltaTime() const {
     return deltaTime;
 }
 
+float Tick::GetSDeltaTime() const {
+    float val = deltaTime * 0.001;
+    return val;
+}
+
 /**
  * Get Elapsed Time
  */

@@ -258,6 +258,8 @@ public:
     void resolveCollision(Collider& collider, std::vector<CollisionResult>& collisions);
     void resolveCollision(RigidBody& rigidBody, const BBox& bbox, std::vector<CollisionResult>& collisions);
 
+    std::function<void(RigidBody&, bool /* pushedUp */)> onResolved;
+
     void update();
     void build();
 

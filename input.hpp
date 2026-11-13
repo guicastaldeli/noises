@@ -48,6 +48,7 @@ public:
         BINDING(DOWN)
         BINDING(CAPTURE)
         BINDING(TOGGLE)
+        BINDING(FLY)
     };
 
     #undef BINDING

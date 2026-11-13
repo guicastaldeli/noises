@@ -115,7 +115,7 @@ void Terrain::upload(const ChunkData& chunkData) {
 // Update
 void Terrain::update() {
     //if(tick.ShouldTick()) std::cout << "Draw calls: " << mesh.getDrawCalls() << std::endl;
-    /*float deltaTime = tick.GetDeltaTime() * 0.001f;
+    /*float deltaTime = tick.GetSDeltaTime();
     mesh.setRotation(0, 0.0f, deltaTime, 0.0f);
     mesh.setRotation(1, deltaTime, 0.0f, 0.0f);
     mesh.setRotation(2, 0.0f, 0.0f, deltaTime);*/
@@ -123,15 +123,15 @@ void Terrain::update() {
     TextureResult tex = mesh.getTextureLoader()->load("test2.jpg");
     uint32_t texId = tex.texId;
     int id = 9999;
-    mesh.setPosition(id, 15.0f, 1.0f, 15.0f);
+    mesh.setPosition(id, 15.0f, 5.0f, 15.0f);
     mesh.load(id, "cube");
     mesh.setTexture(id, texId);
 
-    int id2 = 99999;
+    /*int id2 = 99999;
     mesh.setPosition(id2, 18.0f, 1.0f, 18.0f);
     mesh.load(id2, "cube");
     mesh.setTexture(id2, texId);
-    
+    */
     Skybox::update();
 }
 

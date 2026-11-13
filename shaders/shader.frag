@@ -41,4 +41,5 @@ void main() {
     vec3 finalColor = mix(litColor, shadowColor, shadow);
 
     outColor = vec4(finalColor, 1.0);
+    return;
 }

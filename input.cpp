@@ -120,6 +120,7 @@ void Input::setBindings() {
     bind(Bindings::DOWN,        GLFW_KEY_LEFT_SHIFT);
     bind(Bindings::CAPTURE,     GLFW_KEY_ESCAPE);
     bind(Bindings::TOGGLE,      GLFW_KEY_E);
+    bind(Bindings::FLY,         GLFW_KEY_F);
 }
 
 /**
@@ -217,8 +218,9 @@ void Input::update() {
             setCursorCaptured(false);
         }
     } else {
-        if(pressedMouse(GLFW_MOUSE_BUTTON_LEFT)) {
-            m_mousePressed.erase(GLFW_MOUSE_BUTTON_LEFT);
+        if(main.camera->isPaused() && 
+            !main.ui->visible && 
+            pressedMouse(GLFW_MOUSE_BUTTON_LEFT)) {
             setCursorCaptured(true);
         }
     }

@@ -496,6 +496,7 @@ void CollisionManager::resolveCollision(RigidBody& rigidBody,
             });
 
     bool hasStatic = false;
+    bool resolved = false;
 
     for(const CollisionResult& c : collisions) {
         if(!c.otherCollider) continue;
@@ -552,6 +553,7 @@ void CollisionManager::resolveCollision(RigidBody& rigidBody,
                 pos.y += b->normal.y * b->depth;
                 pos.z += b->normal.z * b->depth;
 
+                if(b->normal.y > 0.5f) resolved = true;
                 if(std::fabs(b->normal.x) > 0.5f) vel.x = 0.0f;
                 if(std::fabs(b->normal.y) > 0.5f) vel.y = 0.0f;
                 if(std::fabs(b->normal.z) > 0.5f) vel.z = 0.0f;
@@ -561,6 +563,8 @@ void CollisionManager::resolveCollision(RigidBody& rigidBody,
             rigidBody.setPosition(pos);
         }
     }
+
+    if(onResolved) onResolved(rigidBody, resolved);
 }
 
 void CollisionManager::resolveCollision(Collider& collider, std::vector<CollisionResult>& collisions) {
@@ -587,7 +591,7 @@ void CollisionManager::update() {
         RigidBody* rigidBody = collider->getRigidBody();
         if(!rigidBody) continue;
 
-        float dt = tick.GetDeltaTime() * 0.001f;
+        float dt = tick.GetSDeltaTime();
         if(dt < 0.0f) dt = 0.0f;
         if(dt > MAX_DT) dt = MAX_DT;
 
@@ -610,7 +614,7 @@ void CollisionManager::update() {
         RigidBody* rigidBody = entry.rigidBody;
         if(!rigidBody) continue;
 
-        float dt = tick.GetDeltaTime() * 0.001f;
+        float dt = tick.GetSDeltaTime();
         if(dt < 0.0f) dt = 0.0f;
         if(dt > MAX_DT) dt = MAX_DT;
 

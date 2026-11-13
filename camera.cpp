@@ -70,17 +70,45 @@ void RigidBody::setSize(const Vec3& s) {
     size = s;
 }
 
+// Is Grounded
+bool RigidBody::isGrounded() const {
+    return grounded;
+}
+
+// Set Grounded
+void RigidBody::setGrounded(bool g) {
+    grounded = g;
+}
+
 // Move
 void RigidBody::move(Vec3 m, float moveSpeed) {
     if(paused) return;
 
+    Vec3 vel = velocity;
+
     float v = 1e-6f;
-    float len = std::sqrt(m.x*m.x + m.y*m.y + m.z*m.z);
+    float len = std::sqrt(m.x*m.x + m.z*m.z);
     if(len > v) {
         m.x /= len; m.y /= len; m.z /= len;
-        setVelocity(m * moveSpeed);
+        vel.x = m.x * moveSpeed;
+        vel.z = m.z * moveSpeed;
+        if(m.y != 0.0f) vel.y = m.y * moveSpeed;
     } else {
-        setVelocity(Vec3(0, 0, 0));
+        vel.x = 0.0f;
+        vel.z = 0.0f;
+    }
+
+    setVelocity(vel);
+}
+
+// Set Gravity
+void RigidBody::setGravity(float deltaTime) {
+    float MAX_FALL_SPEED = 50.0f;
+    if(!grounded) {
+        verticalVel -= GRAVITY * deltaTime;
+        if(verticalVel < -MAX_FALL_SPEED) verticalVel -MAX_FALL_SPEED;
+    } else {
+        verticalVel = 0.0f;
     }
 }
 
@@ -235,6 +263,29 @@ Mat4 Camera::getProjectionMatrix() {
 }
 
 /**
+ * Toggle Fly Mode
+ */
+void Camera::toggleFlyMode() {
+    flyMode = !flyMode;
+    if(!flyMode) {
+        Vec3 v = rigidBody.getVelocity();
+        v.y = 0.0;
+        rigidBody.setVelocity(v);
+        rigidBody.grounded = false;
+    } else {
+        rigidBody.grounded = false;
+        rigidBody.verticalVel = 0.0f;
+    }
+}
+
+/**
+ * Is Flying
+ */
+bool Camera::isFlying() const {
+    return flyMode;
+}
+
+/**
  * 
  * Set
  * 
@@ -266,24 +317,51 @@ void Camera::set() {
 /**
  * Move
  */
+// Move
 void Camera::move() {
     Vec3 move(0.0f, 0.0f, 0.0f);
-
     Vec3 fwd(forward.x, 0.0f, forward.z);
-    float fl = std::sqrt(fwd.x*fwd.x + fwd.z*fwd.z);
+
     float v = 1e-6f;
-    if(fl > v)  { fwd.x /= fl; fwd.z /= fl; }
-    else        { fwd = Vec3(0.0f, 0.0f, 0.0f); }
+    float fl = std::sqrt(fwd.x*fwd.x + fwd.z*fwd.z);
+    if(fl > v) { fwd.x /= fl; fwd.z /= fl; }
 
     float f = 1.0f;
-    if(input->down(Input::Bindings::FORWARD))   move = move + fwd;
-    if(input->down(Input::Bindings::BACKWARD))  move = move - fwd;
-    if(input->down(Input::Bindings::RIGHT))     move = move + right;
-    if(input->down(Input::Bindings::LEFT))      move = move - right;
-    if(input->down(Input::Bindings::UP))        move.y += f;
-    if(input->down(Input::Bindings::DOWN))      move.y -= f;
+    if(input->down(Input::Bindings::FORWARD))       move = move + fwd;
+    if(input->down(Input::Bindings::BACKWARD))      move = move - fwd;
+    if(input->down(Input::Bindings::RIGHT))         move = move + right;
+    if(input->down(Input::Bindings::LEFT))          move = move - right;
+    if(flyMode) {
+        if(input->down(Input::Bindings::UP))        move.y += f;
+        if(input->down(Input::Bindings::DOWN))      move.y -= f;
+    } else {
+        Vec3 vel = rigidBody.getVelocity();
+        vel.y = rigidBody.verticalVel;
+        rigidBody.setVelocity(vel);
+    }
 
     rigidBody.move(move, MOVE_SPEED);
+}
+
+// Set Move
+void Camera::setMove(float deltaTime) {
+    if(!flyMode) {
+        jump();
+        rigidBody.setGravity(deltaTime);
+    } else {
+        rigidBody.verticalVel = 0.0f;
+        rigidBody.grounded = false;
+    }
+}
+
+/**
+ * Jump
+ */
+void Camera::jump() {
+    if(rigidBody.grounded && input->pressed(Input::Bindings::UP)) {
+        rigidBody.verticalVel = rigidBody.JUMP_SPEED;
+        rigidBody.grounded = false;
+    }
 }
 
 /**
@@ -319,6 +397,8 @@ void Camera::toggle() {
  * 
  */
 void Camera::update() {
+    float deltaTime = tick.GetSDeltaTime();
+
     if(paused) {
         rigidBody.pause();
         set();
@@ -335,8 +415,9 @@ void Camera::update() {
         if(pitch < -limit) pitch = -limit;
     }
 
+    if(input->pressed(Input::Bindings::FLY)) toggleFlyMode();
     set();
-    move();
+    setMove(deltaTime);
 
     /*if(tick.ShouldTick()) {
         Vec3 p = getPosition();
@@ -359,5 +440,7 @@ void Camera::init(Input* input, CollisionManager* collision) {
     set();
     setPosition();
     rigidBody.update();
+    
+    collision->onResolved = [this](RigidBody& rb, bool g) { if(&rb == &rigidBody) rigidBody.grounded = g; };
     collision->set(getRigidBody(), CollisionType::STATIC_COLLIDER);
 }

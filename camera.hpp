@@ -26,6 +26,15 @@ public:
                 position(position),
                 size(size) {};
 
+    float GRAVITY = 30.0f;
+    float JUMP_SPEED = 10.0f;
+    float verticalVel = 0.0f;
+
+    bool grounded = false;
+
+    bool isGrounded() const;
+    void setGrounded(bool g);
+
     void pause();
     void resume();
     void toggle();
@@ -43,7 +52,10 @@ public:
     const Vec3& getSize() const;
     void setSize(const Vec3& s);
 
+    void setGravity(float deltaTime);
+
     void move(Vec3 m, float moveSpeed);
+
     void update();
     void init();
 };
@@ -83,7 +95,7 @@ public:
 
     float zNear = 0.1f;
     float zFar = 1000.0f;
-    float fov = 60.0f;
+    float fov = 100.0f;
 
     float POS_X = 0.0f;
     float POS_Y = 20.0f;
@@ -91,6 +103,8 @@ public:
 
     float MOVE_SPEED = 30.0f;
     float MOUSE_SENSV = 0.0025f;
+
+    bool flyMode = true;
 
     Vec3 rigidBodySize{ 1.0f, 1.0f, 1.0f };
 
@@ -114,8 +128,15 @@ public:
     Vec3 getUp() const;
     RigidBody& getRigidBody();
 
+    void toggleFlyMode();
+    bool isFlying() const;
+
     void set();
     void init(Input* input, CollisionManager* collision);
+
     void move();
+    void setMove(float deltaTime);
+    void jump();
+
     void update();
 };

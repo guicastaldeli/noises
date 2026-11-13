@@ -33,6 +33,7 @@ public:
 
     bool ShouldTick() const;
     float GetDeltaTime() const;
+    float GetSDeltaTime() const;
     float GetTickRate() const;
     float GetElapsedTime() const;
     uint64_t GetTickCount() const;
