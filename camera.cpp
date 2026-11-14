@@ -89,13 +89,16 @@ void RigidBody::move(Vec3 m, float moveSpeed) {
     float v = 1e-6f;
     float len = std::sqrt(m.x*m.x + m.z*m.z);
     if(len > v) {
-        m.x /= len; m.y /= len; m.z /= len;
+        m.x /= len; 
+        m.z /= len;
         vel.x = m.x * moveSpeed;
         vel.z = m.z * moveSpeed;
-        if(m.y != 0.0f) vel.y = m.y * moveSpeed;
     } else {
         vel.x = 0.0f;
         vel.z = 0.0f;
+    }
+    if(m.y != 0.0f) {
+        vel.y = m.y * moveSpeed;
     }
 
     setVelocity(vel);
@@ -106,7 +109,7 @@ void RigidBody::setGravity(float deltaTime) {
     float MAX_FALL_SPEED = 50.0f;
     if(!grounded) {
         verticalVel -= GRAVITY * deltaTime;
-        if(verticalVel < -MAX_FALL_SPEED) verticalVel -MAX_FALL_SPEED;
+        if(verticalVel < -MAX_FALL_SPEED) verticalVel = -MAX_FALL_SPEED;
     } else {
         verticalVel = 0.0f;
     }
@@ -418,6 +421,7 @@ void Camera::update() {
     if(input->pressed(Input::Bindings::FLY)) toggleFlyMode();
     set();
     setMove(deltaTime);
+    move();
 
     /*if(tick.ShouldTick()) {
         Vec3 p = getPosition();
