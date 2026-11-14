@@ -54,7 +54,7 @@ public:
 
     void setGravity(float deltaTime);
 
-    void move(Vec3 m, float moveSpeed);
+    void move(Vec3 m, float moveSpeed, bool flyMode = false);
 
     void update();
     void init();

@@ -81,7 +81,7 @@ void RigidBody::setGrounded(bool g) {
 }
 
 // Move
-void RigidBody::move(Vec3 m, float moveSpeed) {
+void RigidBody::move(Vec3 m, float moveSpeed, bool flyMode) {
     if(paused) return;
 
     Vec3 vel = velocity;
@@ -97,7 +97,7 @@ void RigidBody::move(Vec3 m, float moveSpeed) {
         vel.x = 0.0f;
         vel.z = 0.0f;
     }
-    if(m.y != 0.0f) {
+    if(flyMode) {
         vel.y = m.y * moveSpeed;
     }
 
@@ -270,15 +270,13 @@ Mat4 Camera::getProjectionMatrix() {
  */
 void Camera::toggleFlyMode() {
     flyMode = !flyMode;
-    if(!flyMode) {
-        Vec3 v = rigidBody.getVelocity();
-        v.y = 0.0;
-        rigidBody.setVelocity(v);
-        rigidBody.grounded = false;
-    } else {
-        rigidBody.grounded = false;
-        rigidBody.verticalVel = 0.0f;
-    }
+
+    Vec3 v = rigidBody.getVelocity();
+    v.y = 0.0;
+    rigidBody.setVelocity(v);
+    
+    rigidBody.verticalVel = 0.0f;
+    rigidBody.grounded = false;
 }
 
 /**
@@ -343,7 +341,7 @@ void Camera::move() {
         rigidBody.setVelocity(vel);
     }
 
-    rigidBody.move(move, MOVE_SPEED);
+    rigidBody.move(move, MOVE_SPEED, flyMode);
 }
 
 // Set Move

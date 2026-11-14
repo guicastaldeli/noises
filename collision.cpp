@@ -489,7 +489,11 @@ void CollisionManager::resolveCollision(RigidBody& rigidBody,
                                         const BBox& bbox,
                                         std::vector<CollisionResult>& collisions) 
 {
-    if(collisions.empty()) return;
+    if(collisions.empty()) {
+        if(onResolved) onResolved(rigidBody, false);
+        return;
+    }
+
     std::sort(collisions.begin(), collisions.end(),
             [](const CollisionResult& a, const CollisionResult& b) {
                 return b.depth < a.depth;
@@ -553,9 +557,9 @@ void CollisionManager::resolveCollision(RigidBody& rigidBody,
                 pos.y += b->normal.y * b->depth;
                 pos.z += b->normal.z * b->depth;
 
-                if(b->normal.y > 0.5f) resolved = true;
+                if(b->normal.y > 0.5f && vel.y <= 0.0f) resolved = true;
                 if(std::fabs(b->normal.x) > 0.5f) vel.x = 0.0f;
-                if(std::fabs(b->normal.y) > 0.5f) vel.y = 0.0f;
+                if(std::fabs(b->normal.y) > 0.5f && vel.y <= 0.0f) vel.y = 0.0f;
                 if(std::fabs(b->normal.z) > 0.5f) vel.z = 0.0f;
             }
 
