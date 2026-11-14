@@ -104,6 +104,18 @@ void RigidBody::move(Vec3 m, float moveSpeed, bool flyMode) {
     setVelocity(vel);
 }
 
+// Jump
+void RigidBody::jump(bool g) {
+    if(isJumping && g) {
+        if(verticalVel <= 0.0f) {
+            isJumping = false;
+            grounded = true;
+            wantsJump = false;
+        }
+        return;
+    }
+}
+
 // Set Gravity
 void RigidBody::setGravity(float deltaTime) {
     float MAX_FALL_SPEED = 50.0f;
@@ -111,7 +123,7 @@ void RigidBody::setGravity(float deltaTime) {
         verticalVel -= GRAVITY * deltaTime;
         if(verticalVel < -MAX_FALL_SPEED) verticalVel = -MAX_FALL_SPEED;
     } else {
-        verticalVel = 0.0f;
+        if(verticalVel <= 0.0f) verticalVel = 0.0f;
     }
 }
 
@@ -359,9 +371,13 @@ void Camera::setMove(float deltaTime) {
  * Jump
  */
 void Camera::jump() {
-    if(rigidBody.grounded && input->pressed(Input::Bindings::UP)) {
+    if(input->pressed(Input::Bindings::UP)) {
+        rigidBody.wantsJump = true;
+    }
+    if(rigidBody.grounded && !rigidBody.isJumping && rigidBody.wantsJump) {
         rigidBody.verticalVel = rigidBody.JUMP_SPEED;
         rigidBody.grounded = false;
+        rigidBody.isJumping = true;
     }
 }
 
@@ -443,6 +459,11 @@ void Camera::init(Input* input, CollisionManager* collision) {
     setPosition();
     rigidBody.update();
     
-    collision->onResolved = [this](RigidBody& rb, bool g) { if(&rb == &rigidBody) rigidBody.grounded = g; };
+    collision->onResolved = [this](RigidBody& rb, bool g) { 
+        if(&rb == &rigidBody) {
+            rigidBody.jump(g);
+            rigidBody.grounded = g; 
+        }
+    };
     collision->set(getRigidBody(), CollisionType::STATIC_COLLIDER);
 }

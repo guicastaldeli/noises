@@ -28,9 +28,12 @@ public:
 
     float GRAVITY = 30.0f;
     float JUMP_SPEED = 10.0f;
-    float verticalVel = 0.0f;
 
+    float verticalVel = 0.0f;
+    
     bool grounded = false;
+    bool isJumping = false;
+    bool wantsJump = false;
 
     bool isGrounded() const;
     void setGrounded(bool g);
@@ -55,6 +58,7 @@ public:
     void setGravity(float deltaTime);
 
     void move(Vec3 m, float moveSpeed, bool flyMode = false);
+    void jump(bool g);
 
     void update();
     void init();
@@ -101,12 +105,12 @@ public:
     float POS_Y = 20.0f;
     float POS_Z = 6.0f;
 
-    float MOVE_SPEED = 30.0f;
+    float MOVE_SPEED = 10.0f;
     float MOUSE_SENSV = 0.0025f;
 
     bool flyMode = true;
 
-    Vec3 rigidBodySize{ 1.0f, 1.0f, 1.0f };
+    Vec3 rigidBodySize{ 1.0f, 3.0f, 1.0f };
 
     Tick& getTick() const;
 
