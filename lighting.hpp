@@ -535,12 +535,10 @@ void LightingManager::ShadowMap::create(Main& main, Shader& shader, Mesh& mesh) 
 }
 
 void LightingManager::ShadowMap::render(VkCommandBuffer cmd, Mesh& mesh) {
-    // 1. Manually transition the image layout to DEPTH_STENCIL_ATTACHMENT_OPTIMAL
-    // This ensures we don't get garbage data on the first frame.
     VkImageMemoryBarrier barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-    barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED; // We don't care about previous contents
-    barrier.newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    barrier.newLayout = VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL;
     barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     barrier.image = shadowImage;
@@ -554,7 +552,7 @@ void LightingManager::ShadowMap::render(VkCommandBuffer cmd, Mesh& mesh) {
 
     vkCmdPipelineBarrier(
         cmd,
-        VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 
+        VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
         VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
         0,
         0, nullptr,
@@ -562,7 +560,6 @@ void LightingManager::ShadowMap::render(VkCommandBuffer cmd, Mesh& mesh) {
         1, &barrier
     );
 
-    // 2. Begin the Shadow Render Pass
     VkRenderPassBeginInfo rp{};
     rp.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     rp.renderPass = shadowRenderPass;
@@ -571,38 +568,30 @@ void LightingManager::ShadowMap::render(VkCommandBuffer cmd, Mesh& mesh) {
     rp.renderArea.extent = {SHADOW_MAP_WIDTH, SHADOW_MAP_HEIGHT};
 
     VkClearValue clear{};
-    // Clear to 1.0f (far plane) so everything is initially "lit"
-    clear.depthStencil = {1.0f, 0}; 
+    clear.depthStencil = {1.0f, 0};
     rp.clearValueCount = 1;
     rp.pClearValues = &clear;
 
     vkCmdBeginRenderPass(cmd, &rp, VK_SUBPASS_CONTENTS_INLINE);
-    
-    // 3. Bind the Shadow Pipeline
-    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, shadowPipeline);
+        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, shadowPipeline);
 
-    // 4. Set the Viewport and Scissor
-    VkViewport vp{};
-    vp.x = 0.0f;
-    vp.y = 0.0f;
-    vp.width = (float)SHADOW_MAP_WIDTH;
-    vp.height = (float)SHADOW_MAP_HEIGHT;
-    vp.minDepth = 0.0f;
-    vp.maxDepth = 1.0f;
-    vkCmdSetViewport(cmd, 0, 1, &vp);
+        VkViewport vp{};
+        vp.x = 0.0f;
+        vp.y = 0.0f;
+        vp.width = (float)SHADOW_MAP_WIDTH;
+        vp.height = (float)SHADOW_MAP_HEIGHT;
+        vp.minDepth = 0.0f;
+        vp.maxDepth = 1.0f;
+        vkCmdSetViewport(cmd, 0, 1, &vp);
 
-    VkRect2D sc{};
-    sc.offset = {0, 0};
-    sc.extent = {SHADOW_MAP_WIDTH, SHADOW_MAP_HEIGHT};
-    vkCmdSetScissor(cmd, 0, 1, &sc);
+        VkRect2D sc{};
+        sc.offset = {0, 0};
+        sc.extent = {SHADOW_MAP_WIDTH, SHADOW_MAP_HEIGHT};
+        vkCmdSetScissor(cmd, 0, 1, &sc);
 
-    // 5. Render all meshes into the shadow map
-    mesh.render(true);
-    
+        mesh.render(true);
     vkCmdEndRenderPass(cmd);
 
-    // 6. Manually transition the image back to SHADER_READ_ONLY_OPTIMAL
-    // This is required so the main pass can safely sample it.
     barrier.oldLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
     barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     barrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;

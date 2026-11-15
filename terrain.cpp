@@ -123,7 +123,7 @@ void Terrain::update() {
     TextureResult tex = mesh.getTextureLoader()->load("test2.jpg");
     uint32_t texId = tex.texId;
     int id = 9999;
-    mesh.setPosition(id, 15.0f, 5.0f, 15.0f);
+    mesh.setPosition(id, 15.0f, 1.5f, 15.0f);
     mesh.load(id, "cube");
     mesh.setTexture(id, texId);
 

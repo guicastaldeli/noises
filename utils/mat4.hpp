@@ -74,17 +74,23 @@ struct Mat4 {
     }
     static Mat4 Ortho(float left, float right, float bottom, float top, float nearZ, float farZ) {
         Mat4 m;
-        
         m.m[0][0] = 2.0f / (right - left);
         m.m[1][1] = 2.0 / (top - bottom);
-
         m.m[2][2] = 1.0f / (nearZ - farZ);
         m.m[3][2] = nearZ / (nearZ - farZ);
-
         m.m[3][0] = -(right + left) / (right - left);
         m.m[3][1] = -(top + bottom) / (top - bottom);
         m.m[3][3] = 1.0f;
-
+        return m;
+    }
+    static Mat4 Perspective(float fovRadians, float aspect, float n, float f) {
+        Mat4 m;
+        float t = 1.0f / std::tan(fovRadians * 0.5f);
+        m.m[0][0] = t / aspect;
+        m.m[1][1] = t;
+        m.m[2][2] = f / (n - f);
+        m.m[2][3] = (n * f) / (n - f);
+        m.m[3][2] = -1.0f;
         return m;
     }
     static Mat4 LookAt(const Vec3& eye, const Vec3& center, const Vec3& up) {

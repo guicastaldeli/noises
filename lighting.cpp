@@ -112,14 +112,18 @@ Mat4 DirectionalLight::getLightSpaceMatrix(const Vec3& center, float radius) con
     float v2 = 0.99f;
     if(std::fabs(dir.y) > v2) up = Vec3(0.0f, 0.0f, 1.0f);
 
+    float fovRadians = 90.0f * PI / 180.0f;
+    float aspect = 1.0f;
     
-    Vec3 lightPos(center.x - dir.x * (radius * 2.0f),
-                center.y - dir.y * (radius * 2.0f),
-                center.z - dir.z * (radius * 2.0f));
+    float distance = radius / std::tan(fovRadians * 0.5f);
+    float nearPlane = distance * 0.1f;
+    float farPlane = distance * 4.0f;
+
+    Vec3 lightPos(center.x - dir.x * distance,
+                center.y - dir.y * distance,
+                center.z - dir.z * distance);
     Mat4 lightView = Mat4::LookAt(lightPos, center, up);
-    Mat4 lightProj = Mat4::Ortho(-radius, radius,
-                                -radius, radius,
-                                0.1f, radius * 4.0f);
+    Mat4 lightProj = Mat4::Perspective(fovRadians, aspect, nearPlane, farPlane);
 
     return lightProj * lightView;
 }
@@ -315,8 +319,8 @@ void LightingManager::upload(UniformBuffer& ubo) {
     DirectionalLight::uploadCount(ubo, (int)directionalLight.size());
     for(auto& d : directionalLight) d->upload(ubo);
     if(!directionalLight.empty()) {
-        Vec3 sceneCenter(15.0f, 0.0f, 15.0f);
-        float sceneRadius = 30.0f; 
+        Vec3 sceneCenter(15.0f, 1.5f, 15.0f);
+        float sceneRadius = 60.0f; 
         // TODO: change this later to fit inside the
         // Boundary collider size... and calc the center
         // dynamically of course...
