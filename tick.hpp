@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include <math.h>
 #include <chrono>
 
 class Tick {
@@ -20,6 +21,7 @@ private:
     float MS_PER_TICK = 1000.0f / TICKS_PER_SECOND;
     
     float accumulator = 0.0f;
+    float deltaMs = 0.0f;
     float deltaTime = 0.0f;
     float elapsedTime = 0.0f;
     uint64_t tickCount = 0;
@@ -33,7 +35,6 @@ public:
 
     bool ShouldTick() const;
     float GetDeltaTime() const;
-    float GetSDeltaTime() const;
     float GetTickRate() const;
     float GetElapsedTime() const;
     uint64_t GetTickCount() const;

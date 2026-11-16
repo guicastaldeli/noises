@@ -149,6 +149,7 @@ uint32_t DirectionalLight::getId() const {
 // Set Direction
 void DirectionalLight::setDirection(float x, float y, float z) {
     direction = Vec3(x, y, z);
+    LightingManager::ShadowMap::markUsed();
 }
 
 // Get Direction

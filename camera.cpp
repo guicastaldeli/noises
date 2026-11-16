@@ -414,7 +414,7 @@ void Camera::toggle() {
  * 
  */
 void Camera::update() {
-    float deltaTime = tick.GetSDeltaTime();
+    float deltaTime = tick.GetDeltaTime();
 
     if(paused) {
         rigidBody.pause();

@@ -107,6 +107,7 @@ void Terrain::upload(const ChunkData& chunkData) {
     if(trackCollision) collision.build();
 
     updateBoundary(chunkData);
+    LightingManager::ShadowMap::markUsed();
 }
 
 /**
@@ -115,10 +116,12 @@ void Terrain::upload(const ChunkData& chunkData) {
 // Update
 void Terrain::update() {
     //if(tick.ShouldTick()) std::cout << "Draw calls: " << mesh.getDrawCalls() << std::endl;
-    /*float deltaTime = tick.GetSDeltaTime();
+    /*float deltaTime = tick.GetDeltaTime();
     mesh.setRotation(0, 0.0f, deltaTime, 0.0f);
     mesh.setRotation(1, deltaTime, 0.0f, 0.0f);
     mesh.setRotation(2, 0.0f, 0.0f, deltaTime);*/
+
+    updateLighting();
 
     TextureResult tex = mesh.getTextureLoader()->load("test2.jpg");
     uint32_t texId = tex.texId;
@@ -165,6 +168,23 @@ void Terrain::updateBoundary(const ChunkData& chunkData) {
     float halfSize = maxRadius * BOUNDARY_MULTIPLIER;
     
     boundary.update({cx, 0.0f, cz}, halfSize);
+}
+
+// Update Lighting
+void Terrain::updateLighting() {
+    LightingManager* lights = mesh.getLightingManager();
+    const auto& dls = lights->getDirectionalLight();
+    if(!dls.empty()) {
+        float t = tick.GetElapsedTime() / 80.0f;
+        float angle = t * 0.5f;
+        float pitch = 0.3f;
+
+        float sx = std::cos(angle) * std::sin(pitch);
+        float sy = -std::cos(pitch);
+        float sz = std::sin(angle) * std::sin(pitch);
+
+        dls[0]->setDirection(sx, sy, sz);
+    }
 }
 
 /**

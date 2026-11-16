@@ -73,6 +73,7 @@ public:
     void upload(const ChunkData& chunkData);
 
     void update();
+    void updateLighting();
     void updateBoundary(const ChunkData& chunkData);
     
     void render();

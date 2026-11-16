@@ -4,8 +4,8 @@
 #include <utils/mat4.hpp>
 #include <utils/color.hpp>
 #include <utils/idgen.hpp>
-#include <shader.hpp>
 #include <string>
+#include <shader.hpp>
 #include <vector>
 #include <memory>
 #include <algorithm>
@@ -224,6 +224,12 @@ public:
         static inline VkPipeline shadowPipeline = VK_NULL_HANDLE;
         static inline VkPipelineLayout shadowPipelineLayout = VK_NULL_HANDLE;
         
+        static inline uint32_t shadowFrameCounter = 0;
+        static inline uint32_t shadowUpdateInterval = 3;
+        static inline bool shadowMapUsed = true;
+
+        static void markUsed();
+        static bool shouldUpdate();
         static void createShadowResources(Main& main);
         static void createShadowRenderPass(VkDevice device);
         static void createShadowFramebuffer(VkDevice device);
@@ -248,6 +254,16 @@ public:
 #include <cake.hpp>
 #include <mesh.hpp>
 #include <stdexcept>
+
+void LightingManager::ShadowMap::markUsed() {
+    shadowMapUsed = true;
+}
+
+bool LightingManager::ShadowMap::shouldUpdate() {
+    if(shadowMapUsed) return true;
+    if(shadowUpdateInterval == 0) return false;
+    return (shadowFrameCounter % shadowUpdateInterval) == 0;
+}
 
 void LightingManager::ShadowMap::createShadowResources(Main& main) {
     VkImageCreateInfo imageInfo{};
@@ -529,6 +545,9 @@ void LightingManager::ShadowMap::create(Main& main, Shader& shader, Mesh& mesh) 
 }
 
 void LightingManager::ShadowMap::render(VkCommandBuffer cmd, Mesh& mesh) {
+    shadowFrameCounter++;
+    if(!shouldUpdate()) return;
+
     VkRenderPassBeginInfo rp{};
     rp.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     rp.renderPass = shadowRenderPass;
@@ -560,6 +579,8 @@ void LightingManager::ShadowMap::render(VkCommandBuffer cmd, Mesh& mesh) {
 
         mesh.render(true);
     vkCmdEndRenderPass(cmd);
+
+    shadowMapUsed = false;
 }
 
 void LightingManager::ShadowMap::clear(VkDevice device) {

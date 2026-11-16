@@ -595,7 +595,7 @@ void CollisionManager::update() {
         RigidBody* rigidBody = collider->getRigidBody();
         if(!rigidBody) continue;
 
-        float dt = tick.GetSDeltaTime();
+        float dt = tick.GetDeltaTime();
         if(dt < 0.0f) dt = 0.0f;
         if(dt > MAX_DT) dt = MAX_DT;
 
@@ -618,7 +618,7 @@ void CollisionManager::update() {
         RigidBody* rigidBody = entry.rigidBody;
         if(!rigidBody) continue;
 
-        float dt = tick.GetSDeltaTime();
+        float dt = tick.GetDeltaTime();
         if(dt < 0.0f) dt = 0.0f;
         if(dt > MAX_DT) dt = MAX_DT;
 

@@ -24,11 +24,6 @@ float Tick::GetDeltaTime() const {
     return deltaTime;
 }
 
-float Tick::GetSDeltaTime() const {
-    float val = deltaTime * 0.001;
-    return val;
-}
-
 /**
  * Get Elapsed Time
  */
@@ -57,11 +52,14 @@ uint64_t Tick::GetTickCount() const {
  */
 void Tick::Update() {
     TimePoint now = Clock::now();
-    deltaTime = std::chrono::duration<float, std::milli>(now - lastTime).count();
+    float ms = std::chrono::duration<float, std::milli>(now - lastTime).count();
     lastTime = now;
 
+    deltaMs = std::min(ms, 100.0f);
+    deltaTime = deltaMs * 0.001;
+
     elapsedTime += deltaTime;
-    accumulator += deltaTime;
+    accumulator += deltaMs;
 
     ticked = false;
     if(accumulator >= MS_PER_TICK) {
