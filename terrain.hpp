@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <string>
+#include <random> 
 #include <tick.hpp>
 #include <mesh.hpp>
 #include <chunk.hpp>
@@ -62,6 +63,13 @@ private:
     const char* ids = "terrain";
     std::vector<uint32_t> spawnedIds;
 
+    uint32_t texId;
+    std::mt19937 rng{ std::random_device{}() };
+
+    float tmin = 0.85f;
+    float tmax = 1.0f;
+    std::uniform_real_distribution<float> tingDist{ tmin, tmax };
+
 public:
     Terrain(Tick& tick, Mesh& mesh, CollisionManager& collision);
     ~Terrain();
@@ -69,6 +77,8 @@ public:
     bool trackCollision = true;
 
     Mesh& getMesh() const;
+
+    void set();
 
     void upload(const ChunkData& chunkData);
 
@@ -79,4 +89,11 @@ public:
     void init();
     
     void cleanup();
+
+    // Set Tint Range
+    void str(float lo, float hi) {
+        tmin = lo;
+        tmax = hi;
+        
+    }
 };

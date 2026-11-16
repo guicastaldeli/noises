@@ -19,7 +19,7 @@ layout(location = 0) out vec4 outColor;
 
 void main() {
     vec4 baseColor = vec4(fragColor, 1.0);
-    if(fragHasTexture != 0u) baseColor = texture(tex[nonuniformEXT(fragTexIndex)], fragUv);
+    if(fragHasTexture != 0u) baseColor *= texture(tex[nonuniformEXT(fragTexIndex)], fragUv);
 
     vec3 viewDir = normalize(ubo.cameraPos.xyz - fragPosWorld);
     if(fragHasLit == 0u) {
