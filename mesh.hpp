@@ -478,7 +478,7 @@ public:
     void beginFrame() {
         drawCalls = 0;
 
-        const size_t stride = sizeof(Mat4) + sizeof(uint32_t) * 3;
+        const size_t stride = sizeof(Mat4) + sizeof(uint32_t) * 3 + sizeof(Vec3);
         VkDeviceSize needed = stride * VkDeviceSize(pendingInstances.size());
         if(needed > instanceBufferSize) {
             if(instanceBuffer != VK_NULL_HANDLE) {
@@ -657,15 +657,15 @@ public:
      * Get Vertex Input State
      * *******/
     VkPipelineVertexInputStateCreateInfo getVertexInputState() const {
-        const std::size_t instAttr = 7;
-        const std::size_t combinedArray = 11;
+        const std::size_t instAttr = 8;
+        const std::size_t combinedArray = 12;
 
         static auto bindingDesc = Vertex::getBindingDescription();
         static auto attrDesc = Vertex::getAttributeDescriptions();
 
         static VkVertexInputBindingDescription instanceBinding{};
         instanceBinding.binding = 1;
-        instanceBinding.stride = sizeof(Mat4) + sizeof(uint32_t) * 3;
+        instanceBinding.stride = sizeof(Mat4) + sizeof(uint32_t) * 3 + sizeof(Vec3);
         instanceBinding.inputRate = VK_VERTEX_INPUT_RATE_INSTANCE;
 
         static std::array<VkVertexInputAttributeDescription, instAttr> instanceAttr{};
@@ -690,6 +690,11 @@ public:
         instanceAttr[6].location = 10;
         instanceAttr[6].format = VK_FORMAT_R32_UINT;
         instanceAttr[6].offset = sizeof(Mat4) + sizeof(uint32_t) * 2;
+        // location 11: instanceColor
+        instanceAttr[7].binding = 1;
+        instanceAttr[7].location = 11;
+        instanceAttr[7].format = VK_FORMAT_R32G32B32_SFLOAT;
+        instanceAttr[7].offset = sizeof(Mat4) + sizeof(uint32_t) * 3;
 
         static std::array<VkVertexInputBindingDescription, 2> bindings = {
             bindingDesc,

@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <string>
+#include <utils/tint.hpp>
 #include <random> 
 #include <tick.hpp>
 #include <mesh.hpp>
@@ -63,12 +64,11 @@ private:
     const char* ids = "terrain";
     std::vector<uint32_t> spawnedIds;
 
+    inline static constexpr const char* TEX_PATH = "grass.png";
     uint32_t texId;
+    
     std::mt19937 rng{ std::random_device{}() };
-
-    float tmin = 0.85f;
-    float tmax = 1.0f;
-    std::uniform_real_distribution<float> tingDist{ tmin, tmax };
+    Tint::Config tint;
 
 public:
     Terrain(Tick& tick, Mesh& mesh, CollisionManager& collision);
@@ -89,11 +89,4 @@ public:
     void init();
     
     void cleanup();
-
-    // Set Tint Range
-    void str(float lo, float hi) {
-        tmin = lo;
-        tmax = hi;
-        
-    }
 };

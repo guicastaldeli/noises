@@ -354,9 +354,10 @@ void Mesh::renderInstances(VkPipelineLayout layout, VkDescriptorSet* sets, uint3
         uint32_t texId;
         uint32_t hasTexture;
         uint32_t hasLit;
+        Vec3 color;
     };
     static_assert(sizeof(DataInstance) == sizeof(Mat4) + 
-                    sizeof(uint32_t) * dataCount, 
+                    sizeof(uint32_t) * dataCount + sizeof(Vec3), 
                     "DataInstance layout must match vertex input stride");
 
     std::unordered_map<std::string, std::vector<DataInstance>> byType;
@@ -376,6 +377,8 @@ void Mesh::renderInstances(VkPipelineLayout layout, VkDescriptorSet* sets, uint3
         di.texId = getTexture(entry.id);
         di.hasTexture = (textureIds.count(entry.id) > 0) ? 1u : 0u;
         auto litIt = hasLitIds.find(entry.id);      di.hasLit = (litIt != hasLitIds.end()) ? litIt->second : 1u;
+        di.color = tit->second.color;
+        
         byType[entry.type].push_back(di);
     }
     

@@ -73,13 +73,15 @@ Mesh& Terrain::getMesh() const {
  * Set
  */
 void Terrain::set() {
-    TextureResult tex = mesh.getTextureLoader()->load("test.jpg");
+    TextureResult tex = mesh.getTextureLoader()->load(TEX_PATH);
     texId = tex.texId;
 
-    std::uniform_real_distribution<float> tint(0.85f, 1.0f);
-    float tr = tint(rng);
-    float tg = tint(rng);
-    float tb = ting(rng);
+    float tmin = 0.95f;
+    float tmax = 1.15f;
+    float s = 1337u;
+    tint.lo = Vec3(tmin, tmin, tmin);
+    tint.hi = Vec3(tmax, tmax, tmax);
+    tint.seed = s;
 }
 
 /**
@@ -95,6 +97,8 @@ void Terrain::upload(const ChunkData& chunkData) {
     spawnedIds.clear();
     if(trackCollision) collision.clearColliders();
 
+    set();
+
     for(int z = 0; z < chunkData.sz; ++z)
     for(int y = 0; y < chunkData.sy; ++y)
     for(int x = 0; x < chunkData.sx; ++x) {
@@ -109,10 +113,11 @@ void Terrain::upload(const ChunkData& chunkData) {
                     origin.z + float(z));
         mesh.load(id, MESH_TYPE);
         mesh.setTexture(id, texId);
-        mesh.setColor(id, )
-        if(trackCollision) {
-            collision.set(id, CollisionType::STATIC_COLLIDER);
-        }
+        
+        Vec3 color = Tint::key(tint, id);
+        mesh.setColor(id, color.x, color.y, color.z);
+        
+        if(trackCollision) collision.set(id, CollisionType::STATIC_COLLIDER);
     }
 
     if(trackCollision) collision.build();

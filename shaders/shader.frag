@@ -10,6 +10,7 @@ layout(location = 3) flat in uint fragHasTexture;
 layout(location = 4) in vec3 fragPosWorld;
 layout(location = 5) in vec3 fragNormal;
 layout(location = 6) flat in uint fragHasLit;
+layout(location = 7) in vec3 fragInstanceColor;
 
 layout(set = 1, binding = 0) uniform sampler2D tex[];
 
@@ -18,8 +19,13 @@ layout(set = 1, binding = 0) uniform sampler2D tex[];
 layout(location = 0) out vec4 outColor;
 
 void main() {
-    vec4 baseColor = vec4(fragColor, 1.0);
-    if(fragHasTexture != 0u) baseColor *= texture(tex[nonuniformEXT(fragTexIndex)], fragUv);
+    vec4 baseColor;
+    if(fragHasTexture != 0u) {
+        baseColor = texture(tex[nonuniformEXT(fragTexIndex)], fragUv) * vec4(fragInstanceColor, 1.0);
+    } else {
+        baseColor = vec4(fragColor * fragInstanceColor, 1.0);
+    }
+    
 
     vec3 viewDir = normalize(ubo.cameraPos.xyz - fragPosWorld);
     if(fragHasLit == 0u) {

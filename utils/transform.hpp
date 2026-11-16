@@ -17,10 +17,10 @@
 #include <cmath>
 
 struct Transform {
-    Vec3 position;
-    Vec3 rotation;
-    Vec3 scale = Vec3(1.0f, 1.0f, 1.0f);
-    Vec3 color = Vec3(1.0f, 1.0f, 1.0f);
+    Vec3 position{ 0, 0, 0 };
+    Vec3 rotation{ 0, 0, 0 };
+    Vec3 scale   { 1, 1, 1 };
+    Vec3 color   { 1, 1, 1 };
 
     Mat4 GetModelMatrix() const {
         Mat4 model = Mat4::Identity();
