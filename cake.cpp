@@ -45,6 +45,27 @@ float Main::getAspectRatio() {
 }
 
 /**
+ * Add Lighting
+ */
+void Main::addLighting() {
+    LightingManager* lights = mesh->getLightingManager();
+    //lights->add(LightType::AMBIENT).setColor("#c12222").setIntensity(5.0f);
+    lights->add(LightType::AMBIENT).setColor("#1a1a1a").setIntensity(0.5f);
+
+    lights->add(LightType::DIRECTIONAL)
+      .setColor("#fdfdfd")
+      //.setDirection(1.0f, -0.2f, 0.0f)
+      .setDirection(0.0f, -10.0f, 20.0f)
+      //.setDirection(40.0f, -60.0f, 1.0f) 
+      //.setDirection(50.0f, -1.0f, 0.0f)
+      .setIntensity(1.0f);
+    /*lights->add(LightType::POINT)
+        .setColor("#FFFFFF")
+        .setPosition(15.0f, 5.0f, 15.0f)
+        .setIntensity(20.0f);*/
+}
+
+/**
  * Get Input
  */
 Input* Main::getInput() {
@@ -255,23 +276,9 @@ void Main::Init() {
     mesh->init(data);
     terrain->init();
     data->init();
-
-    LightingManager* lights = mesh->getLightingManager();
-    //lights->add(LightType::AMBIENT).setColor("#c12222").setIntensity(5.0f);
-    lights->add(LightType::AMBIENT).setColor("#1a1a1a").setIntensity(0.5f);
-
-    lights->add(LightType::DIRECTIONAL)
-      .setColor("#fdfdfd")
-      //.setDirection(1.0f, -0.2f, 0.0f)
-      .setDirection(0.0f, -10.0f, 20.0f)
-      //.setDirection(40.0f, -60.0f, 1.0f) 
-      //.setDirection(50.0f, -1.0f, 0.0f)
-      .setIntensity(1.0f);
-    /*lights->add(LightType::POINT)
-        .setColor("#FFFFFF")
-        .setPosition(15.0f, 5.0f, 15.0f)
-        .setIntensity(20.0f);*/
     ui->I<Main>();
+
+    addLighting();
 }
 
 /**

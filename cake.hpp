@@ -111,6 +111,8 @@ public:
     float getAspectRatio();
     Input* getInput();
 
+    void addLighting();
+
     void Set();
     void Create();
     void Update();
