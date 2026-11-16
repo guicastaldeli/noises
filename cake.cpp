@@ -252,7 +252,7 @@ void Main::Config() {
 void Main::Init() {
     camera->init(input, collision);
     mesh->setInit(device, commandPool, graphicsQueue, physicalDevice, MAX_FRAMES_IN_FLIGHT);
-    mesh->init();
+    mesh->init(data);
     terrain->init();
     data->init();
 
@@ -262,7 +262,8 @@ void Main::Init() {
 
     lights->add(LightType::DIRECTIONAL)
       .setColor("#fdfdfd")
-      .setDirection(1.0f, -0.2f, 0.0f)
+      //.setDirection(1.0f, -0.2f, 0.0f)
+      .setDirection(0.0f, -10.0f, 20.0f)
       //.setDirection(40.0f, -60.0f, 1.0f) 
       //.setDirection(50.0f, -1.0f, 0.0f)
       .setIntensity(1.0f);

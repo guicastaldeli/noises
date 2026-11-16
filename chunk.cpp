@@ -2,6 +2,29 @@
 #include <cmath>
 #include <random>
 
+/**
+ * 
+ * Get Chunk Bounds
+ * 
+ */
+ChunkBounds Chunk::getChunkBounds(const ChunkData& c) {
+    float width = static_cast<float>(c.sx);
+    float height = static_cast<float>(c.sy);
+    float depth = static_cast<float>(c.sz);
+
+    Vec3 center(width * 0.5f,
+                height * 0.5f,
+                depth * 0.5f);
+
+    float radius = std::sqrt(
+        (width * 0.5f) * (width * 0.5f) +
+        (height * 0.5f) * (height * 0.5f) +
+        (depth * 0.5f) * (depth * 0.5f)
+    );
+
+    return { center, radius };
+}
+
 /**************
  * 
  * Generate Chunk

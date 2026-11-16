@@ -24,6 +24,20 @@ Mesh::~Mesh() {
 };
 
 /**
+ * Set Data
+ */
+void Mesh::setData(gData* d) {
+    data = d;
+}
+
+/**
+ * Get Data
+ */
+const gData* Mesh::getData() const {
+    return data;
+}
+
+/**
  * Get Camera
  */
 const Camera& Mesh::getCamera() const {
@@ -426,12 +440,13 @@ void Mesh::renderShadowPass(VkCommandBuffer cmd) {
  * Init
  * 
  */
-void Mesh::init() {
+void Mesh::init(gData* data) {
     createDescriptorSetLayout();
     createUniformBuffers();
     createDescriptorPool();
     createDescriptorSets();
 
+    setData(data);
     texture->init(main.MAX_FRAMES_IN_FLIGHT);
     lighting->init();
 }

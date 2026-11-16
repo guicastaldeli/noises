@@ -22,9 +22,11 @@
 #include <array>
 #include <cstddef>
 #include <lighting.hpp>
+#include <data.hpp>
 
 class Main;
 class Shader;
+using gData = Data;
 class Camera;
 
 /**********
@@ -199,7 +201,8 @@ private:
     Main& main;
     Shader& shader;
     Camera& camera;
-
+    
+    gData* data = nullptr;
     TextureLoader* texture = nullptr;
     LightingManager* lighting = nullptr;
 
@@ -434,6 +437,9 @@ public:
 
     std::unordered_map<uint32_t, uint32_t> hasLitIds;
     void setHasLit(uint32_t id, bool lit);
+
+    void setData(gData* d);
+    const gData* getData() const;
     
     const Camera& getCamera() const;
 
@@ -458,7 +464,7 @@ public:
             uint32_t maxFrames);
     void setInstanceBuffer(VkDeviceSize size);
     void load(uint32_t id, const std::string& type);
-    void init();
+    void init(gData* data);
     void create();
     void render(bool shadowPass = false);
     void renderShadowPass(VkCommandBuffer cmd);

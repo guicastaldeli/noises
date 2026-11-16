@@ -123,15 +123,28 @@ void Terrain::update() {
     TextureResult tex = mesh.getTextureLoader()->load("test2.jpg");
     uint32_t texId = tex.texId;
     int id = 9999;
-    mesh.setPosition(id, 15.0f, 1.5f, 15.0f);
+    mesh.setPosition(id, 15.0f, 3.0f, 15.0f);
+    mesh.setScale(id, 1.0f, 5.0f, 1.0f);
     mesh.load(id, "cube");
     mesh.setTexture(id, texId);
 
-    /*int id2 = 99999;
+    int id2 = 99999;
     mesh.setPosition(id2, 18.0f, 1.0f, 18.0f);
     mesh.load(id2, "cube");
     mesh.setTexture(id2, texId);
-    */
+
+    int id3 = 88888;
+    mesh.setPosition(id3, 50.0f, 3.0f, 15.0f);
+    mesh.setScale(id3, 1.0f, 5.0f, 1.0f);
+    mesh.load(id3, "cube");
+    mesh.setTexture(id3, texId);
+
+    int id4 = 888888;
+    mesh.setPosition(id4, 15.0f, 21.0f, 15.0f);
+    mesh.setScale(id4, 1.0f, 5.0f, 1.0f);
+    mesh.load(id4, "cube");
+    mesh.setTexture(id4, texId);
+
     Skybox::update();
 }
 

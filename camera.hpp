@@ -99,7 +99,7 @@ public:
 
     float zNear = 0.1f;
     float zFar = 1000.0f;
-    float fov = 100.0f;
+    float fov = 120.0f;
 
     float POS_X = 0.0f;
     float POS_Y = 20.0f;

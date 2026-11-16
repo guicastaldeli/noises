@@ -4,6 +4,7 @@
 #include <shader.hpp>
 #include <stdexcept>
 #include <cake.hpp>
+#include <chunk.hpp>
 #include <cstring>
 
 // ---------------------------------------
@@ -102,7 +103,7 @@ DirectionalLight::DirectionalLight(LightingManager& lightingManager) : Lighting(
 }
 
 // Get Light Space Matrix
-Mat4 DirectionalLight::getLightSpaceMatrix(const Vec3& center, float radius) const {
+Mat4 DirectionalLight::getLightSpaceMatrix(const Vec3& center, const Vec3& halfSize) const {
     Vec3 dir = direction;
     float len = std::sqrt(dir.x*dir.x + dir.y*dir.y + dir.z*dir.z);
     float v1 = 1e-6f;
@@ -114,14 +115,21 @@ Mat4 DirectionalLight::getLightSpaceMatrix(const Vec3& center, float radius) con
 
     float fovRadians = 90.0f * PI / 180.0f;
     float aspect = 1.0f;
-    
-    float distance = radius / std::tan(fovRadians * 0.5f);
-    float nearPlane = distance * 0.1f;
-    float farPlane = distance * 4.0f;
 
-    Vec3 lightPos(center.x - dir.x * distance,
-                center.y - dir.y * distance,
-                center.z - dir.z * distance);
+    float ex = std::abs(halfSize.x * (1.0f - dir.x*dir.x));
+    float ey = std::abs(halfSize.y * (1.0f - dir.y*dir.y));
+    float ez = std::abs(halfSize.z * (1.0f - dir.z*dir.z));
+    float extent = 2.0f * std::max({ex, ey, ez});
+
+    float natDist = extent / std::tan(fovRadians * 0.5f);
+    float dist = std::max(natDist, 60.0f);
+
+    float nearPlane = dist * 0.05f;
+    float farPlane = dist + extent + 20.0f;
+
+    Vec3 lightPos(center.x - dir.x * dist,
+                center.y - dir.y * dist,
+                center.z - dir.z * dist);
     Mat4 lightView = Mat4::LookAt(lightPos, center, up);
     Mat4 lightProj = Mat4::Perspective(fovRadians, aspect, nearPlane, farPlane);
 
@@ -319,15 +327,13 @@ void LightingManager::upload(UniformBuffer& ubo) {
     DirectionalLight::uploadCount(ubo, (int)directionalLight.size());
     for(auto& d : directionalLight) d->upload(ubo);
     if(!directionalLight.empty()) {
-        Vec3 sceneCenter(15.0f, 1.5f, 15.0f);
-        float sceneRadius = 60.0f; 
-        // TODO: change this later to fit inside the
-        // Boundary collider size... and calc the center
-        // dynamically of course...
-        Mat4 ls = directionalLight[0]->getLightSpaceMatrix(sceneCenter, sceneRadius);
+        const ChunkData& chunkData = mesh.getData()->chunkData;
+        Vec3 sceneCenter(chunkData.sx*0.5, chunkData.sy*0.5f, chunkData.sz*0.5f);
+        Vec3 halfSize(chunkData.sx*0.5, chunkData.sy*0.5f, chunkData.sz*0.5f);
+        Mat4 ls = directionalLight[0]->getLightSpaceMatrix(sceneCenter, halfSize);
         for(int r = 0; r < 4; ++r)
         for(int c = 0; c < 4; ++c) {
-            ubo.lights.lightSpaceMatrix.m[r][c] = ls.m[c][r]; 
+            ubo.lights.lightSpaceMatrix.m[r][c] = ls.m[c][r];
         }
     }
 

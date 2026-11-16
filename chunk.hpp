@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <vector>
 #include <heightmap.hpp>
+#include <utils/vec3.hpp>
 #include <.lib/enum/enum_reflect.hpp>
 
 #define CHUNK_X_SIZE 30
@@ -70,6 +71,16 @@ struct ChunkData {
     }
 };
 
+/*************** 
+ * 
+ * Chunk Bounds
+ * 
+ * *****/
+struct ChunkBounds {
+    Vec3 center;
+    float radius;
+};
+
 /******************
  * 
  * Chunk methods.
@@ -77,6 +88,8 @@ struct ChunkData {
  ******/
 class Chunk {
 public:
+    static ChunkBounds getChunkBounds(const ChunkData& c);
+    
     // heightmap + params -> chunk buffer.
     static ChunkData generateChunk(const ChunkParams& p, const Heightmap& heightmap);
 };
