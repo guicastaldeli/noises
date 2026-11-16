@@ -115,6 +115,7 @@ public:
 
     void Set();
     void Create();
+    void updateLighting();
     void Update();
     void Config();
     void Init();

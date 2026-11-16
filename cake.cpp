@@ -82,21 +82,42 @@ void Main::Set() {
 /**
  * Update
  */
+// Update
 void Main::Update() {
     while(!window->shouldClose()) {
         input->beginFrame();
+        
         tick->Update();
         window->update();
         input->update();
         camera->update();
         collision->update();
         terrain->update();
+        updateLighting();
+
         mesh->beginFrame();
         drawFrame();
         input->endFrame();
     }
 
     vkDeviceWaitIdle(device);
+}
+
+// Update Lighting
+void Main::updateLighting() {
+    LightingManager* lights = mesh->getLightingManager();
+    const auto& dls = lights->getDirectionalLight();
+    if(!dls.empty()) {
+        float t = tick->GetElapsedTime() / 80.0f;
+        float angle = t * 0.5f;
+        float pitch = 0.3f;
+
+        float sx = std::cos(angle) * std::sin(pitch);
+        float sy = -std::cos(pitch);
+        float sz = std::sin(angle) * std::sin(pitch);
+
+        dls[0]->setDirection(sx, sy, sz);
+    }
 }
 
 /**
