@@ -95,7 +95,7 @@ void Terrain::upload(const ChunkData& chunkData) {
     IdGen::reset(ids);
     mesh.clearInstances(spawnedIds);
     spawnedIds.clear();
-    if(trackCollision) collision.clearColliders();
+    collision.clearColliders();
 
     set();
 
@@ -120,7 +120,7 @@ void Terrain::upload(const ChunkData& chunkData) {
         if(trackCollision) collision.set(id, CollisionType::STATIC_COLLIDER);
     }
 
-    if(trackCollision) collision.build();
+    collision.build();
 
     updateBoundary(chunkData);
     LightingManager::ShadowMap::markUsed();
